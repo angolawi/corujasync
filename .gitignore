@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C environments
+.venv/
+env/
+venv/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Downloads and State caches
+SEDF/
+SEFAZAL/
+SEFAZDF/
+TCEGO/
+*.part
+.download_state.json
+downloads/
+
+# PyInstaller / Build outputs
+build/
+dist/
+*.spec
