@@ -27,7 +27,7 @@ BY_MAP = {
     "tag": By.TAG_NAME,
 }
 
-DEFAULT_OTA_URL = "https://raw.githubusercontent.com/angolaw/AutoDownloadEstrategiaConcurso/master/core/selectors.json"
+DEFAULT_OTA_URL = "https://raw.githubusercontent.com/corujasync/corujasync/main/core/selectors.json"
 CACHE_TTL_SECONDS = 86400  # 24 horas
 
 

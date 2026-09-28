@@ -3,8 +3,8 @@
 
 #define MyAppName "CorujaSync"
 #define MyAppVersion "2.0.0"
-#define MyAppPublisher "Demiurgo"
-#define MyAppURL "https://github.com/angolaw/AutoDownloadEstrategiaConcurso"
+#define MyAppPublisher "CorujaSync"
+#define MyAppURL "https://corujasync.com"
 #define MyAppExeName "CorujaSync.exe"
 
 [Setup]

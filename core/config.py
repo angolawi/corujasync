@@ -42,7 +42,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "rate_limit_delay_seconds": 1.0,
     "preferred_browser": "auto",  # "auto", "edge", "chrome", "firefox"
     "ota_selectors_enabled": True,
-    "ota_selectors_url": "https://raw.githubusercontent.com/angolaw/AutoDownloadEstrategiaConcurso/master/core/selectors.json",
+    "ota_selectors_url": "https://raw.githubusercontent.com/corujasync/corujasync/main/core/selectors.json",
 }
 
 

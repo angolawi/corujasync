@@ -58,8 +58,8 @@ python main.py -d "~/Downloads/Concursos"
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/DemiurgoGM/AutoDownloadEstrategiaConcurso.git
-   cd AutoDownloadEstrategiaConcurso
+   git clone https://github.com/corujasync/corujasync.git
+   cd corujasync
    ```
 
 2. **Crie e ative o ambiente virtual:**
