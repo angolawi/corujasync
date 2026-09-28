@@ -241,7 +241,7 @@ Downloads acelerados e requisições concorrentes massivas poderiam ser enquadra
 
 ### 4.6. Desassociação de Marca e Propriedade Intelectual
 - O aplicativo não deve usar logotipos oficiais, identidade visual proprietária ou alegar qualquer endosso da empresa Estratégia Concursos.
-- Usar nome de produto neutro, por exemplo: `ConcursoDownloader - Backup Pessoal de Estudos`.
+- Usar nome de produto neutro, por exemplo: `CorujaSync - Backup Inteligente de Estudos`.
 - Inserir aviso de isenção (*disclaimer*) visível no rodapé da GUI e no README:
   > *"Este software é um utilitário independente e de código aberto para backup de estudos pessoais. Não é patrocinado, afiliado nem aprovado pela empresa Estratégia Concursos ou qualquer outra entidade de ensino."*
 

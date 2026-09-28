@@ -131,7 +131,7 @@ class LicenseView(ctk.CTkFrame):
 
         self.entry_key = ctk.CTkEntry(
             row_key,
-            placeholder_text="Cole a chave fornecida na compra (ex: CDL-ANU-...)",
+            placeholder_text="Cole a chave fornecida na compra (ex: CSYNC-ANU-...)",
             font=get_font(12, family="mono"),
             height=36,
         )

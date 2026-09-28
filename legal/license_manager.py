@@ -13,7 +13,7 @@ from typing import Dict, Any, Tuple, Optional
 from core.config import load_config, save_config
 
 # Chave secreta de assinatura interna para validação offline de integridade
-_DEFAULT_HMAC_SECRET = "AGY_CONCURSO_DL_SECRET_KEY_v1_2026_SECURE_AUTH"
+_DEFAULT_HMAC_SECRET = "AGY_CORUJA_SYNC_SECRET_KEY_v1_2026_SECURE_AUTH"
 
 
 def get_machine_id() -> str:
@@ -63,7 +63,7 @@ def generate_license_key(
     ).hexdigest()[:16].upper()
 
     tier_tag = tier.upper()[:3]
-    return f"CDL-{tier_tag}-{payload_b64}-{signature}"
+    return f"CSYNC-{tier_tag}-{payload_b64}-{signature}"
 
 
 def validate_license_key(
@@ -79,8 +79,8 @@ def validate_license_key(
         return False, "Chave de licença não fornecida.", {}
 
     parts = key.strip().split("-")
-    if len(parts) != 4 or parts[0] != "CDL":
-        return False, "Formato de chave inválido. Esperado padrão CDL-XXX-XXXX-XXXX.", {}
+    if len(parts) != 4 or parts[0] not in ("CSYNC", "CDL"):
+        return False, "Formato de chave inválido. Esperado padrão CSYNC-XXX-XXXX-XXXX.", {}
 
     tier_tag, payload_b64, signature = parts[1], parts[2], parts[3]
 

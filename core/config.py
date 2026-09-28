@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from typing import Dict, Any
 
-APP_NAME = "AutoConcursoDownloader"
+APP_NAME = "CorujaSync"
 
 
 def get_app_dir() -> Path:
@@ -50,6 +50,20 @@ def load_config() -> Dict[str, Any]:
     """Carrega as configurações salvas ou retorna as padrões."""
     cfg = DEFAULT_CONFIG.copy()
     config_path = Path(CONFIG_FILE_PATH)
+    if not config_path.exists():
+        for legacy_name in ("autoconcursodownloader", "AutoConcursoDownloader"):
+            legacy_path = config_path.parent.parent / legacy_name / "config.json"
+            if legacy_path.exists():
+                try:
+                    with open(legacy_path, "r", encoding="utf-8") as f:
+                        saved = json.load(f)
+                        if isinstance(saved, dict):
+                            cfg.update(saved)
+                            save_config(cfg)
+                            return cfg
+                except Exception:
+                    pass
+
     if config_path.exists():
         try:
             with open(config_path, "r", encoding="utf-8") as f:

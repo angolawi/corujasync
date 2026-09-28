@@ -1,5 +1,5 @@
 """
-Design System e Tokens Visuais da Interface Gráfica Moderna do Concurso Downloader.
+Design System e Tokens Visuais da Interface Gráfica Moderna do CorujaSync.
 Centraliza paletas de cores, tipografia, cantos arredondados e estilos consistentes.
 """
 from typing import Dict, Any, Tuple

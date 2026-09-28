@@ -255,7 +255,7 @@ class SelectorManager:
             resp = requests.get(
                 target_url,
                 timeout=timeout,
-                headers={"User-Agent": "AutoConcursoDownloader/ResilientCrawler"},
+                headers={"User-Agent": "CorujaSync/ResilientCrawler"},
             )
             if resp.status_code == 200:
                 payload = resp.json()

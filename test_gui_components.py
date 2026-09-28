@@ -10,14 +10,14 @@ if os.path.isdir(local_lib):
     os.environ["TK_LIBRARY"] = os.path.join(local_lib, "tk8.6")
 
 from ui.gui.theme import THEME_COLORS, create_card_frame, get_font
-from ui.gui.app import ConcursoDownloaderApp
+from ui.gui.app import CorujaSyncApp, ConcursoDownloaderApp
 
 
 class TestGuiComponents(unittest.TestCase):
 
     def setUp(self):
         # Cria a janela sem abrir loop infinito
-        self.app = ConcursoDownloaderApp()
+        self.app = CorujaSyncApp()
         self.app.withdraw()  # Oculta janela durante testes
         self.app.update()
 

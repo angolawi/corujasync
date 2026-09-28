@@ -30,7 +30,7 @@ class AboutView(ctk.CTkFrame):
 
         lbl_app = ctk.CTkLabel(
             head,
-            text="Concurso Downloader Desktop",
+            text="CorujaSync Desktop",
             font=get_font(16, "bold"),
             text_color=THEME_COLORS["accent_primary"],
         )

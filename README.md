@@ -1,4 +1,4 @@
-# Concurso Downloader - Backup Inteligente de Cursos
+# CorujaSync - Backup Inteligente de Cursos
 
 Utilitário moderno em Python e aplicação desktop para automatizar o download inteligente, estruturado e resiliente de materiais de estudo (Livros Eletrônicos em PDF, Videoaulas em MP4 e materiais de apoio) com interface gráfica (GUI), compatibilidade com múltiplos navegadores e salvaguardas legais de proteção autoral.
 
@@ -86,7 +86,7 @@ Para gerar uma versão autônoma (`.exe` no Windows ou binário no Linux) para d
 ```bash
 python build_desktop.py
 ```
-O executável final pronto para uso será gerado na pasta `dist/ConcursoDownloader`.
+O executável final pronto para uso será gerado na pasta `dist/CorujaSync`.
 
 ---
 

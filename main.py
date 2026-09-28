@@ -1168,7 +1168,7 @@ def main():
     Analisa os argumentos da linha de comando e despacha para o modo correto.
     """
     parser = argparse.ArgumentParser(
-        description="Baixador inteligente de materiais (PDFs e Vídeos) do Estratégia Concursos.",
+        description="CorujaSync - Sincronizador e baixador inteligente de materiais (PDFs e Vídeos).",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 

@@ -118,7 +118,7 @@ class RichDownloadUI(DownloadObserver):
     ) -> None:
         """Exibe o cabeçalho inicial com as informações da execução."""
         if not self.console:
-            print(f"=== Concurso Downloader | Modo: {mode} ===")
+            print(f"=== CorujaSync | Modo: {mode} ===")
             print(f"Destino: {target_dir}")
             if target_name:
                 print(f"Alvo: {target_name}")
@@ -136,7 +136,7 @@ class RichDownloadUI(DownloadObserver):
         self.console.print(
             Panel(
                 body,
-                title="[bold green]Concurso Downloader - Backup Inteligente[/]",
+                title="[bold green]CorujaSync - Backup Inteligente[/]",
                 border_style="bright_blue",
             )
         )

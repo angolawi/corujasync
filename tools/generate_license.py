@@ -14,7 +14,7 @@ from legal.license_manager import generate_license_key, validate_license_key, ge
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Gerador de Chaves de Licença - Concurso Downloader")
+    parser = argparse.ArgumentParser(description="Gerador de Chaves de Licença - CorujaSync")
     subparsers = parser.add_subparsers(dest="command")
 
     gen_parser = subparsers.add_parser("create", help="Gera uma nova chave de licença")
@@ -38,7 +38,7 @@ def main():
     )
 
     check_parser = subparsers.add_parser("verify", help="Verifica a validade de uma chave")
-    check_parser.add_argument("key", help="Chave completa (ex: CDL-ANU-...)")
+    check_parser.add_argument("key", help="Chave completa (ex: CSYNC-ANU-...)")
 
     machine_parser = subparsers.add_parser("my-machine", help="Exibe o Machine ID deste computador")
 

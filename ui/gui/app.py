@@ -36,7 +36,7 @@ from ui.gui.views.about_view import AboutView
 from ui.gui.workers import DownloadWorker
 
 
-class ConcursoDownloaderApp(ctk.CTk):
+class CorujaSyncApp(ctk.CTk):
     """
     Aplicação desktop principal moderna e modular para download, busca e
     gerenciamento offline de materiais de concursos públicos.
@@ -50,7 +50,7 @@ class ConcursoDownloaderApp(ctk.CTk):
         ctk.set_appearance_mode(initial_theme)
         ctk.set_default_color_theme("blue")
 
-        self.title("Concurso Downloader Pro v2.0 - Backup Inteligente")
+        self.title("CorujaSync Pro v2.0 - Backup Inteligente")
         self.geometry("980x700")
         self.minsize(880, 600)
 
@@ -70,7 +70,7 @@ class ConcursoDownloaderApp(ctk.CTk):
     def _on_eula_accepted(self):
         if "download" in self.views:
             self.views["download"].append_log(
-                "[INFO] Termos de Uso aceitos com sucesso. Bem-vindo ao Concurso Downloader!\n",
+                "[INFO] Termos de Uso aceitos com sucesso. Bem-vindo ao CorujaSync!\n",
                 tag="success",
             )
 
@@ -268,9 +268,13 @@ class ConcursoDownloaderApp(ctk.CTk):
         super().destroy()
 
 
+# Alias para retrocompatibilidade
+ConcursoDownloaderApp = CorujaSyncApp
+
+
 def run_gui():
     """Função de entrada para inicialização da interface gráfica moderna."""
-    app = ConcursoDownloaderApp()
+    app = CorujaSyncApp()
     app.mainloop()
 
 

@@ -10,7 +10,7 @@
 
 ### A. Arquitetura Modular e Clean Architecture
 - **`core/events.py`:** Sistema de eventos desacoplado (`ProgressEvent`, `StatusEvent`, `DisciplineEvent`, `LessonEvent`, `VideoEvent`) com a interface abstrata `DownloadObserver`.
-- **`core/config.py`:** Armazenamento multiplataforma de configurações e preferências nos caminhos padrão do SO (`~/.config/autoconcursodownloader` no Linux, `%LOCALAPPDATA%` no Windows).
+- **`core/config.py`:** Armazenamento multiplataforma de configurações e preferências nos caminhos padrão do SO (`~/.config/corujasync` no Linux, `%LOCALAPPDATA%` no Windows).
 - **`core/session.py`:** Sessão HTTP resiliente com Keep-Alive, retries exponenciais e pool de conexões.
 - **`core/state_manager.py`:** Persistência atômica de progresso em `.download_state.json` com Smart Resume em 0,001s e bootstrap do disco.
 - **`core/downloader.py`:** Download atômico (`.part` -> destino final) com proteção integral de metadados originais.
@@ -19,7 +19,7 @@
 
 ### B. Interface Gráfica Moderna e Profissional (Reestilização Completa)
 - **`ui/gui/theme.py`:** Design System com paleta unificada em Dark/Light Mode, cantos arredondados padronizados (`corner_radius=10` e `12`) e bordas elegantes de 1px.
-- **`ui/gui/views/sidebar.py`:** Barra lateral fixa de navegação (220px) com cabeçalho de marca `⚡ Concurso DL` + `PRO v2.0`, botões com estados ativos destacados (`#3B82F6`), indicador de status em tempo real (`🟢 Pronto`, `🔵 Baixando`) e alternador rápido de tema.
+- **`ui/gui/views/sidebar.py`:** Barra lateral fixa de navegação (220px) com cabeçalho de marca `🦉 CorujaSync` + `PRO v2.0`, botões com estados ativos destacados (`#3B82F6`), indicador de status em tempo real (`🟢 Pronto`, `🔵 Baixando`) e alternador rápido de tema.
 - **`ui/gui/views/download_view.py`:** Estúdio de download em cards visuais:
   - `CTkSegmentedButton` para seleção de modo (`Pacote/Curso` vs `Todos Matriculados`).
   - `CTkSwitch` para videoaulas e `CTkSegmentedButton` para resoluções (`720p HD`, `480p`, `360p`).
@@ -45,14 +45,14 @@
 ### E. Sistema de Licenciamento Criptográfico
 - **`legal/license_manager.py`:**
   - Machine ID determinístico e anônimo (`XXXX-XXXX-XXXX-XXXX`).
-  - Assinatura digital HMAC-SHA256 à prova de falsificação offline (`CDL-<TIER>-<PAYLOAD>-<SIG>`).
+  - Assinatura digital HMAC-SHA256 à prova de falsificação offline (`CSYNC-<TIER>-<PAYLOAD>-<SIG>`).
   - Suporte a múltiplos planos (Vitalício, Anual, Edital) com ou sem trava de máquina.
 - **`tools/generate_license.py`:** Utilitário CLI para geração de licenças e integração via webhook com plataformas de pagamento (**Kiwify**, **Hotmart**, **Cakto**).
 
 ### F. Recursos Premium
 - **Smart Watcher (`core/watcher.py`):** Monitor inteligente periódico que detecta e sincroniza apenas novas aulas postadas após o download inicial.
 - **Indexador de PDFs (`core/indexer.py`):** Motor de busca textual em milissegundos em toda a biblioteca baixada no computador.
-- **Instalador Inno Setup (`installer/concursodownloader.iss`):** Script para compilar instaladores Windows `.exe` profissionais com atalhos e assistente visual.
+- **Instalador Inno Setup (`installer/corujasync.iss`):** Script para compilar instaladores Windows `.exe` profissionais com atalhos e assistente visual.
 
 ### G. Suíte Completa de Testes
 - **44 testes unitários automatizados** passando com **100% de sucesso**:

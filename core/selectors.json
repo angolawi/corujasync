@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated_at": "2026-09-28T09:40:00Z",
-  "description": "Mapa de seletores resilientes com fallback para AutoConcursoDownloader",
+  "description": "Mapa de seletores resilientes com fallback para CorujaSync",
   "selectors": {
     "popup_getsitecontrol": [
       {"by": "id", "value": "getsitecontrol-44266"},

@@ -1,11 +1,11 @@
-; Script de Instalação Inno Setup 6 para Concurso Downloader
-; Gera instalador profissional autônomo Setup_ConcursoDownloader.exe para Windows
+; Script de Instalação Inno Setup 6 para CorujaSync
+; Gera instalador profissional autônomo Setup_CorujaSync.exe para Windows
 
-#define MyAppName "Concurso Downloader"
+#define MyAppName "CorujaSync"
 #define MyAppVersion "2.0.0"
 #define MyAppPublisher "Demiurgo"
 #define MyAppURL "https://github.com/angolaw/AutoDownloadEstrategiaConcurso"
-#define MyAppExeName "ConcursoDownloader.exe"
+#define MyAppExeName "CorujaSync.exe"
 
 [Setup]
 AppId={{D37F8E42-634B-4E38-95C4-E1E98BC59F12}
@@ -20,7 +20,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile=..\legal\eula_text.py
 OutputDir=..\dist
-OutputBaseFilename=Setup_ConcursoDownloader_v{#MyAppVersion}
+OutputBaseFilename=Setup_CorujaSync_v{#MyAppVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -34,7 +34,7 @@ Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortugue
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "..\dist\ConcursoDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\CorujaSync\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

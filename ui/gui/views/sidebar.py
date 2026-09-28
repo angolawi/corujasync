@@ -40,7 +40,7 @@ class SidebarNav(ctk.CTkFrame):
 
         title_lbl = ctk.CTkLabel(
             header_frame,
-            text="⚡ Concurso DL",
+            text="🦉 CorujaSync",
             font=get_font(18, "bold"),
             text_color=THEME_COLORS["accent_primary"],
             anchor="w",

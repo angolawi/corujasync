@@ -16,7 +16,7 @@ def main():
     build_dir = root_dir / "build"
 
     print("=" * 70)
-    print("Iniciando Empacotamento Desktop do Concurso Downloader")
+    print("Iniciando Empacotamento Desktop do CorujaSync")
     print("=" * 70)
 
     # Limpa compilações anteriores
@@ -32,7 +32,7 @@ def main():
         "--noconfirm",
         "--clean",
         "--name",
-        "ConcursoDownloader",
+        "CorujaSync",
         "--collect-all",
         "customtkinter",
         "--collect-all",
@@ -66,7 +66,7 @@ def main():
     if result.returncode == 0:
         print("\n" + "=" * 70)
         print("[✓] Compilação concluída com sucesso!")
-        print(f"O executável gerado encontra-se em: {dist_dir / 'ConcursoDownloader'}")
+        print(f"O executável gerado encontra-se em: {dist_dir / 'CorujaSync'}")
         print("=" * 70)
     else:
         print("\n[✗] Falha durante a compilação do executável.", file=sys.stderr)
