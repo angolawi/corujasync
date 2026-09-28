@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CorujaSync - Backup Inteligente & Organização de Cursos</title>
+  <meta name="description" content="Sincronize, organize e faça backup offline de todos os seus cursos, videoaulas e PDFs para estudar quando quiser, sem depender de internet.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦉</text></svg>">
+  
+  <!-- Fontes Google: Inter e JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+            dark: {
+              bg: '#090B10',
+              surface: '#0F131D',
+              card: '#151A27',
+              border: '#202738',
+              hover: '#262F44',
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 4s ease-in-out infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-8px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Estilos Customizados e Gradientes */
+    .glassmorphism {
+      background: rgba(21, 26, 39, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .light .glassmorphism {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .gradient-hero {
+      background: radial-gradient(circle at 50% -20%, rgba(37, 99, 235, 0.25), transparent 70%);
+    }
+    .glow-effect {
+      box-shadow: 0 0 50px -10px rgba(37, 99, 235, 0.35);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 19, 29, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #2b354d;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+
+<body class="bg-dark-bg text-slate-100 font-sans antialiased transition-colors duration-300 selection:bg-brand-500 selection:text-white" id="app-body">
+
+  <!-- ========================================================================= -->
+  <!-- 1. NAVBAR FIXA                                                            -->
+  <!-- ========================================================================= -->
+  <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-dark-border/40 glassmorphism" id="main-header">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center gap-3 group">
+        <span class="text-3xl transition-transform duration-300 group-hover:scale-110">🦉</span>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-xl tracking-tight text-white dark:text-white light:text-slate-900 group-hover:text-brand-400 transition-colors">CorujaSync</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PRO v2.0</span>
+          </div>
+          <span class="text-[11px] text-slate-400 font-medium tracking-wide">Backup Inteligente de Estudos</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#dores" class="hover:text-brand-400 transition-colors">O Problema</a>
+        <a href="#recursos" class="hover:text-brand-400 transition-colors">Recursos</a>
+        <a href="#como-funciona" class="hover:text-brand-400 transition-colors">Como Funciona</a>
+        <a href="#comparativo" class="hover:text-brand-400 transition-colors">Grátis vs Pro</a>
+        <a href="#planos" class="hover:text-brand-400 transition-colors">Planos & Preços</a>
+        <a href="#faq" class="hover:text-brand-400 transition-colors">Dúvidas Frequentes</a>
+      </nav>
+
+      <!-- Action Buttons & Theme Switcher -->
+      <div class="flex items-center gap-3">
+        <!-- Alternador Dark/Light -->
+        <button id="theme-toggle" class="p-2.5 rounded-xl border border-dark-border bg-dark-surface hover:bg-dark-hover text-slate-300 hover:text-white transition-colors" title="Alternar Modo Claro / Escuro">
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-yellow-400"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden text-slate-700"></i>
+        </button>
+
+        <!-- CTA Principal Header -->
+        <a href="#planos" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/25 transition-all transform hover:-translate-y-0.5">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>Obter Licença Pro</span>
+        </a>
+
+        <!-- Mobile Menu Toggle -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg border border-dark-border text-slate-300 hover:text-white">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-6 border-b border-dark-border bg-dark-surface">
+      <nav class="flex flex-col gap-4 text-sm font-medium text-slate-300">
+        <a href="#dores" class="hover:text-brand-400">O Problema</a>
+        <a href="#recursos" class="hover:text-brand-400">Recursos</a>
+        <a href="#como-funciona" class="hover:text-brand-400">Como Funciona</a>
+        <a href="#comparativo" class="hover:text-brand-400">Grátis vs Pro</a>
+        <a href="#planos" class="hover:text-brand-400">Planos & Preços</a>
+        <a href="#faq" class="hover:text-brand-400">Dúvidas Frequentes</a>
+        <div class="pt-2 flex flex-col gap-2">
+          <a href="#planos" class="w-full text-center py-2.5 px-4 rounded-xl text-sm font-semibold bg-brand-600 text-white">Adquirir Licença Pro</a>
+          <a href="#download-free" class="w-full text-center py-2.5 px-4 rounded-xl text-sm font-semibold bg-dark-card border border-dark-border text-slate-300">Baixar Versão Básica</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 2. HERO SECTION COM MOCKUP INTERATIVO DO APP                              -->
+  <!-- ========================================================================= -->
+  <section class="relative pt-36 pb-20 md:pt-44 md:pb-28 overflow-hidden gradient-hero">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Badges Superiores -->
+      <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
+        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-400 border border-brand-500/20">
+          <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+          <span>Novo Motor de Download Resiliente v2.0</span>
+        </span>
+        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          <span>100% Client-Side & Conforme LGPD</span>
+        </span>
+      </div>
+
+      <!-- Headline Principal -->
+      <div class="text-center max-w-4xl mx-auto">
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight sm:leading-tight">
+          Seus Cursos Salvos no Seu Computador. <br class="hidden sm:inline">
+          <span class="bg-gradient-to-r from-brand-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+            Organizados, Rápidos e Para Sempre.
+          </span>
+        </h1>
+        <p class="mt-6 text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+          O aplicativo desktop definitivo para estudantes e concurseiros sincronizarem 
+          <strong class="text-white font-semibold">Livros Eletrônicos (PDFs), Videoaulas em HD e Mapas Mentais</strong> 
+          em pastas impecáveis com Smart Resume e busca instantânea offline.
+        </p>
+
+        <!-- Botões de Ação Hero -->
+        <div class="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="#planos" class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-base font-bold bg-brand-600 hover:bg-brand-500 text-white shadow-xl shadow-brand-600/30 transition-all transform hover:-translate-y-0.5">
+            <i data-lucide="crown" class="w-5 h-5 text-yellow-300"></i>
+            <span>Desbloquear Licença Pro</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </a>
+
+          <a href="#download-free" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl text-base font-semibold bg-dark-card hover:bg-dark-hover text-slate-200 border border-dark-border transition-all">
+            <i data-lucide="download" class="w-5 h-5 text-brand-400"></i>
+            <span>Baixar Versão Grátis (Trial)</span>
+          </a>
+        </div>
+
+        <!-- Indicadores de Compatibilidade -->
+        <div class="mt-6 flex items-center justify-center gap-6 text-xs text-slate-400">
+          <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Windows 10 e 11</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Linux nativo</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Zero instalação de drivers</span>
+        </div>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- MOCKUP INTERATIVO DO CORUJASYNC (HTML/CSS NATIVO)                    -->
+      <!-- ===================================================================== -->
+      <div class="mt-14 max-w-5xl mx-auto">
+        <div class="rounded-2xl border border-dark-border bg-dark-surface shadow-2xl glow-effect overflow-hidden">
+          
+          <!-- Janela Header (Estilo macOS / Windows) -->
+          <div class="h-10 bg-dark-card border-b border-dark-border px-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+              <span class="text-xs font-mono text-slate-400 ml-2 hidden sm:inline">CorujaSync Pro v2.0 - Backup Inteligente</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+              <span class="flex items-center gap-1 text-emerald-400 font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                🟢 Sistema Pronto
+              </span>
+            </div>
+          </div>
+
+          <!-- Corpo da Janela do App -->
+          <div class="grid grid-cols-1 md:grid-cols-12 min-h-[500px]">
+            
+            <!-- Sidebar do Mockup -->
+            <div class="md:col-span-4 lg:col-span-3 bg-dark-surface border-r border-dark-border p-4 flex flex-col justify-between">
+              <div>
+                <!-- Brand no Mockup -->
+                <div class="flex items-center gap-2.5 pb-4 mb-4 border-b border-dark-border">
+                  <span class="text-2xl">🦉</span>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <span class="font-bold text-sm text-white">CorujaSync</span>
+                      <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">PRO</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400">Backup Inteligente</span>
+                  </div>
+                </div>
+
+                <!-- Abas Interativas -->
+                <div class="space-y-1" id="mockup-tabs">
+                  <button onclick="switchMockupTab('download')" id="tab-btn-download" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold bg-brand-600 text-white transition-all">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>📥 Download</span>
+                  </button>
+                  <button onclick="switchMockupTab('search')" id="tab-btn-search" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-dark-card transition-all">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                    <span>🔍 Busca em PDFs</span>
+                  </button>
+                  <button onclick="switchMockupTab('watcher')" id="tab-btn-watcher" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-dark-card transition-all">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                    <span>⏱ Smart Watcher</span>
+                  </button>
+                  <button onclick="switchMockupTab('license')" id="tab-btn-license" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-dark-card transition-all">
+                    <i data-lucide="key" class="w-4 h-4"></i>
+                    <span>🔑 Licença Pro</span>
+                  </button>
+                  <button onclick="switchMockupTab('settings')" id="tab-btn-settings" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-dark-card transition-all">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                    <span>⚙️ Configurações</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Footer Mockup Sidebar -->
+              <div class="pt-4 border-t border-dark-border text-[11px] text-slate-400">
+                <div class="flex items-center justify-between">
+                  <span>Modo Escuro</span>
+                  <span class="w-8 h-4 rounded-full bg-brand-600 relative inline-flex items-center justify-end px-1">
+                    <span class="w-3 h-3 rounded-full bg-white"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Área Central do Mockup (Conteúdo da Aba Ativa) -->
+            <div class="md:col-span-8 lg:col-span-9 bg-dark-bg p-5 sm:p-6 overflow-hidden">
+              
+              <!-- 1. VIEW DOWNLOAD (Ativa por padrão) -->
+              <div id="mockup-view-download" class="space-y-4">
+                
+                <!-- Card Config de Download -->
+                <div class="bg-dark-card rounded-xl p-4 border border-dark-border">
+                  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                      <i data-lucide="link" class="w-3.5 h-3.5 text-brand-400"></i>
+                      URL ou ID do Pacote / Curso
+                    </span>
+                    <span class="text-[11px] px-2 py-0.5 rounded bg-brand-500/10 text-brand-400 font-mono">Modo: Pacote Específico</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input type="text" readonly value="https://www.estrategiaconcursos.com.br/app/dashboard/pacote/400565" class="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-xs font-mono text-slate-200">
+                    <span class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+                      <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> Baixando
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-dark-border/60 text-xs text-slate-300">
+                    <span class="flex items-center gap-1.5 text-emerald-400 font-medium">
+                      <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Vídeos Ativados (720p HD)
+                    </span>
+                    <span class="flex items-center gap-1.5 text-slate-400">
+                      <i data-lucide="folder" class="w-3.5 h-3.5"></i> Destino: E:\Concursos\SEFAZ
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Telemetria em Tempo Real (Mini Cards) -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div class="bg-dark-card p-3 rounded-xl border border-dark-border">
+                    <span class="text-[10px] text-slate-400 block font-medium">Velocidade</span>
+                    <span class="text-base font-bold text-brand-400 font-mono">4.85 MB/s</span>
+                  </div>
+                  <div class="bg-dark-card p-3 rounded-xl border border-dark-border">
+                    <span class="text-[10px] text-slate-400 block font-medium">Tempo Restante</span>
+                    <span class="text-base font-bold text-yellow-400 font-mono">1m 24s</span>
+                  </div>
+                  <div class="bg-dark-card p-3 rounded-xl border border-dark-border">
+                    <span class="text-[10px] text-slate-400 block font-medium">Progresso</span>
+                    <span class="text-base font-bold text-emerald-400 font-mono">68%</span>
+                  </div>
+                  <div class="bg-dark-card p-3 rounded-xl border border-dark-border">
+                    <span class="text-[10px] text-slate-400 block font-medium">Smart Resume</span>
+                    <span class="text-base font-bold text-purple-400 font-mono">0.001s</span>
+                  </div>
+                </div>
+
+                <!-- Barra de Progresso Animada -->
+                <div class="space-y-1.5">
+                  <div class="flex justify-between text-xs text-slate-300 font-medium">
+                    <span class="flex items-center gap-1.5">
+                      <i data-lucide="file-text" class="w-3.5 h-3.5 text-brand-400"></i>
+                      Baixando: Direito_Constitucional_Aula_04_Controle_de_Constitucionalidade.pdf
+                    </span>
+                    <span class="text-brand-400 font-mono">68%</span>
+                  </div>
+                  <div class="w-full bg-dark-card h-2.5 rounded-full overflow-hidden border border-dark-border">
+                    <div class="bg-gradient-to-r from-brand-600 via-brand-400 to-emerald-400 h-full rounded-full transition-all duration-1000" style="width: 68%"></div>
+                  </div>
+                </div>
+
+                <!-- Console de Logs do Terminal -->
+                <div class="bg-dark-surface rounded-xl p-3 border border-dark-border font-mono text-[11px] text-slate-300 space-y-1 h-36 overflow-hidden custom-scrollbar">
+                  <div class="text-slate-400">━━━ [1/4] Disciplina: Direito Constitucional</div>
+                  <div class="text-slate-400">  ↷ [1/12] Aula 00 (já concluída no histórico) - Pulando instantaneamente</div>
+                  <div class="text-slate-400">  ↷ [2/12] Aula 01 (já concluída no histórico) - Pulando instantaneamente</div>
+                  <div class="text-brand-400">  → [3/12] Baixando Aula 02: Direitos Individuais e Coletivos</div>
+                  <div class="text-emerald-400">    ✓ PDF Teoria Completa baixado (14.2 MB em 2.9s - 4.90 MB/s)</div>
+                  <div class="text-purple-400">    🎬 Playlist: 4 blocos de vídeo identificados</div>
+                  <div class="text-emerald-400">    ✓ Bloco 1 (720p HD) sincronizado com sucesso</div>
+                  <div class="text-brand-300">  → [4/12] Baixando Aula 03: Organização do Estado...</div>
+                </div>
+
+              </div>
+
+              <!-- 2. VIEW SEARCH (Busca em PDFs) -->
+              <div id="mockup-view-search" class="hidden space-y-4">
+                <div class="bg-dark-card rounded-xl p-4 border border-dark-border">
+                  <span class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2 block">Motor de Busca Textual Offline (Estilo Spotlight)</span>
+                  <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                    <input type="text" readonly value="prescrição intercorrente execução fiscal" class="w-full bg-dark-surface border border-brand-500/50 rounded-lg pl-9 pr-3 py-2 text-xs font-mono text-white">
+                  </div>
+                  <div class="flex items-center justify-between mt-2 text-[11px] text-slate-400">
+                    <span>Varredura instantânea em 148 livros eletrônicos</span>
+                    <span class="text-emerald-400 font-bold">14 ocorrências em 0.04s</span>
+                  </div>
+                </div>
+
+                <!-- Resultados de Busca Simulados -->
+                <div class="space-y-2">
+                  <div class="bg-dark-card p-3 rounded-lg border border-dark-border hover:border-brand-500/40 transition-colors">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                      <span class="font-bold text-white">Direito_Tributário_Aula_07_Crédito_e_Extinção.pdf</span>
+                      <span class="text-[10px] px-2 py-0.5 rounded bg-brand-500/20 text-brand-300 font-mono">Página 42</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 font-mono">
+                      "...a <mark class="bg-brand-500/30 text-brand-300 px-1 rounded">prescrição intercorrente</mark> na <mark class="bg-brand-500/30 text-brand-300 px-1 rounded">execução fiscal</mark> rege-se pelo Art. 40 da LEF e jurisprudência do STJ (Tema 566)..."
+                    </p>
+                  </div>
+                  <div class="bg-dark-card p-3 rounded-lg border border-dark-border hover:border-brand-500/40 transition-colors">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                      <span class="font-bold text-white">Direito_Processual_Civil_Aula_05_Execuções.pdf</span>
+                      <span class="text-[10px] px-2 py-0.5 rounded bg-brand-500/20 text-brand-300 font-mono">Página 89</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 font-mono">
+                      "...termo inicial da contagem do prazo prescricional para decretação da <mark class="bg-brand-500/30 text-brand-300 px-1 rounded">prescrição intercorrente</mark>..."
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. VIEW WATCHER (Smart Watcher) -->
+              <div id="mockup-view-watcher" class="hidden space-y-4">
+                <div class="bg-dark-card rounded-xl p-4 border border-dark-border">
+                  <div class="flex items-center justify-between mb-3">
+                    <div>
+                      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Smart Watcher em Execução</h4>
+                      <p class="text-[11px] text-slate-400">Verificação automática de novas aulas publicadas pelo professor</p>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Ativo
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="bg-dark-surface p-2.5 rounded-lg border border-dark-border">
+                      <span class="text-[10px] text-slate-400 block">Frequência</span>
+                      <span class="font-bold text-white">A cada 6 horas</span>
+                    </div>
+                    <div class="bg-dark-surface p-2.5 rounded-lg border border-dark-border">
+                      <span class="text-[10px] text-slate-400 block">Última Checagem</span>
+                      <span class="font-bold text-white">Hoje às 11:42</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-dark-card p-3.5 rounded-xl border border-dark-border">
+                  <div class="flex items-center justify-between text-xs mb-2">
+                    <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+                      <i data-lucide="bell-ring" class="w-4 h-4"></i> 2 Novas Aulas Detectadas!
+                    </span>
+                    <button class="px-2.5 py-1 bg-brand-600 text-white rounded text-[10px] font-bold">Sincronizar Agora</button>
+                  </div>
+                  <div class="space-y-1.5 text-[11px] text-slate-300 font-mono">
+                    <div class="p-2 rounded bg-dark-surface border border-dark-border flex items-center justify-between">
+                      <span>AFO • Aula 08: Novo Arcabouço Fiscal (LC 200/23)</span>
+                      <span class="text-xs text-brand-400 font-bold">PDF + Vídeo</span>
+                    </div>
+                    <div class="p-2 rounded bg-dark-surface border border-dark-border flex items-center justify-between">
+                      <span>Direito Tributário • Aula 11: Reforma Tributária EC 132/23</span>
+                      <span class="text-xs text-brand-400 font-bold">PDF Teórico</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. VIEW LICENSE (Licença Pro) -->
+              <div id="mockup-view-license" class="hidden space-y-4">
+                <div class="bg-dark-card rounded-xl p-4 border border-dark-border">
+                  <div class="flex items-center justify-between mb-3">
+                    <div>
+                      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Status da Conta</h4>
+                      <p class="text-[11px] text-slate-400">Licença Premium Ativada no Computador</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold">★ VITALÍCIO</span>
+                  </div>
+                  <div class="p-3 bg-dark-surface rounded-lg border border-dark-border font-mono text-xs text-slate-300 space-y-1">
+                    <div><span class="text-slate-500">Cliente:</span> aluno.concursado@gmail.com</div>
+                    <div><span class="text-slate-500">Chave:</span> CSYNC-VIT-ey1jbGll...-8A9F</div>
+                    <div><span class="text-slate-500">Validade:</span> Permanente (Sem anuidade)</div>
+                    <div><span class="text-slate-500">Machine ID:</span> B8F2-9901-44A3-CC81</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. VIEW SETTINGS (Configurações) -->
+              <div id="mockup-view-settings" class="hidden space-y-4">
+                <div class="bg-dark-card rounded-xl p-4 border border-dark-border space-y-3">
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Preferências do Sistema</h4>
+                  <div class="flex items-center justify-between py-2 border-b border-dark-border text-xs">
+                    <span>Navegador Padrão</span>
+                    <span class="font-mono text-brand-400">Microsoft Edge / Chrome (Auto)</span>
+                  </div>
+                  <div class="flex items-center justify-between py-2 border-b border-dark-border text-xs">
+                    <span>Qualidade de Vídeo Padrão</span>
+                    <span class="font-mono text-emerald-400">720p HD</span>
+                  </div>
+                  <div class="flex items-center justify-between py-2 text-xs">
+                    <span>Armazenamento</span>
+                    <span class="font-mono text-slate-300">100% Local (Client-Side)</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 3. O PROBLEMA (AS DORES DO CONCURSEIRO)                                    -->
+  <!-- ========================================================================= -->
+  <section id="dores" class="py-20 border-t border-dark-border/40 bg-dark-surface/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-bold tracking-widest text-brand-400 uppercase">O Dilema de Todo Concurseiro</span>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Você já calculou quantas horas perde tentando baixar materiais na mão?
+        </h2>
+        <p class="mt-4 text-base text-slate-300">
+          Estudar para concurso de alto nível já exige esforço demais. Depender de plataformas lentas ou arriscar perder o acesso é a receita para a ansiedade.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Dor 1 -->
+        <div class="bg-dark-card p-6 rounded-2xl border border-dark-border hover:border-red-500/40 transition-all group">
+          <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 mb-5 group-hover:scale-110 transition-transform">
+            <i data-lucide="calendar-x" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Assinaturas que Expiram</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Seu edital atrasa 6 meses, a anuidade vence e você perde instantaneamente o acesso àquele curso que pagou milhares de reais.
+          </p>
+        </div>
+
+        <!-- Dor 2 -->
+        <div class="bg-dark-card p-6 rounded-2xl border border-dark-border hover:border-yellow-500/40 transition-all group">
+          <div class="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-400 mb-5 group-hover:scale-110 transition-transform">
+            <i data-lucide="clock" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Lentidão na Reta Final</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Na semana da prova, os servidores das plataformas ficam sobrecarregados com milhares de acessos simultâneos, travando seus estudos.
+          </p>
+        </div>
+
+        <!-- Dor 3 -->
+        <div class="bg-dark-card p-6 rounded-2xl border border-dark-border hover:border-orange-500/40 transition-all group">
+          <div class="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 mb-5 group-hover:scale-110 transition-transform">
+            <i data-lucide="folder-x" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Downloads Manuais Caóticos</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Clicar botão por botão em 40 disciplinas e 300 aulas gera centenas de arquivos com nomes genéricos jogados na sua pasta "Downloads".
+          </p>
+        </div>
+
+        <!-- Dor 4 -->
+        <div class="bg-dark-card p-6 rounded-2xl border border-dark-border hover:border-purple-500/40 transition-all group">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-5 group-hover:scale-110 transition-transform">
+            <i data-lucide="wifi-off" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Refém da Conexão</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Sem internet no avião, no interior ou durante uma queda de sinal, seu dia de estudos vai para o lixo sem o material salvo offline.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 4. RECURSOS PRINCIPAIS (A SOLUÇÃO CORUJASYNC)                             -->
+  <!-- ========================================================================= -->
+  <section id="recursos" class="py-24 border-t border-dark-border/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-bold tracking-widest text-emerald-400 uppercase">Tecnologia de Ponta a Serviço da Sua Posse</span>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Feito especificamente para a rotina de quem precisa passar
+        </h2>
+        <p class="mt-4 text-base text-slate-300">
+          O CorujaSync reúne em uma só interface nativa todas as ferramentas para você construir sua biblioteca definitiva de estudos.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        <!-- Recurso 1: Smart Resume -->
+        <div class="bg-dark-card p-7 rounded-2xl border border-dark-border hover:border-brand-500/50 transition-all">
+          <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-400 flex items-center justify-center mb-5">
+            <i data-lucide="zap" class="w-6 h-6"></i>
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="text-xl font-bold text-white">Smart Resume 0,001s</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-500/20 text-brand-300">Exclusivo</span>
+          </div>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Nunca baixe o mesmo arquivo duas vezes. O CorujaSync audita seu disco e histórico em 1 milissegundo, pulando o que já foi baixado e continuando exatamente de onde parou.
+          </p>
+        </div>
+
+        <!-- Recurso 2: Videoaulas HD -->
+        <div class="bg-dark-card p-7 rounded-2xl border border-dark-border hover:border-emerald-500/50 transition-all">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-5">
+            <i data-lucide="video" class="w-6 h-6"></i>
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="text-xl font-bold text-white">Videoaulas + Apoio</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">720p HD</span>
+          </div>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Download automatizado de playlists completas com seleção de qualidade (720p, 480p, 360p) e captura conjunta dos slides, resumos e mapas mentais de cada bloco.
+          </p>
+        </div>
+
+        <!-- Recurso 3: Busca Offline Instantânea -->
+        <div class="bg-dark-card p-7 rounded-2xl border border-dark-border hover:border-purple-500/50 transition-all">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-5">
+            <i data-lucide="search" class="w-6 h-6"></i>
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="text-xl font-bold text-white">Busca Spotlight em PDFs</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">Milissegundos</span>
+          </div>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Localize qualquer termo, súmula, artigo ou jurisprudência em todos os seus PDFs baixados em segundos. Exibe número de página e trecho com botão direto de abrir o arquivo.
+          </p>
+        </div>
+
+        <!-- Recurso 4: Smart Watcher -->
+        <div class="bg-dark-card p-7 rounded-2xl border border-dark-border hover:border-yellow-500/50 transition-all">
+          <div class="w-12 h-12 rounded-xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center mb-5">
+            <i data-lucide="bell" class="w-6 h-6"></i>
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="text-xl font-bold text-white">Smart Watcher</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300">Monitor</span>
+          </div>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Esqueça ter que checar o portal todo dia para ver se o professor postou a aula nova. O CorujaSync monitora em segundo plano e baixa apenas os materiais inéditos.
+          </p>
+        </div>
+
+        <!-- Recurso 5: Organização Perfeita -->
+        <div class="bg-dark-card p-7 rounded-2xl border border-dark-border hover:border-blue-500/50 transition-all">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-5">
+            <i data-lucide="folder-tree" class="w-6 h-6"></i>
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="text-xl font-bold text-white">Estrutura Inteligente</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">Zero Bagunça</span>
+          </div>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Cria automaticamente pastas por Órgão, Cargo, Disciplina e Número da Aula com nomes higienizados e ordenados, perfeitos para sincronizar no Google Drive ou tablet.
+          </p>
+        </div>
+
+        <!-- Recurso 6: Blindagem Legal & Privacidade -->
+        <div class="bg-dark-card p-7 rounded-2xl border border-dark-border hover:border-emerald-500/50 transition-all">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-5">
+            <i data-lucide="shield" class="w-6 h-6"></i>
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="text-xl font-bold text-white">100% Client-Side & Ético</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Art. 46 LDA</span>
+          </div>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Opera 100% no seu computador, sem servidores intermediários ou envio de senhas. Preserva intactas as marcas d'água originais com seu CPF em respeito à lei autoral.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 5. COMO FUNCIONA EM 3 PASSOS                                              -->
+  <!-- ========================================================================= -->
+  <section id="como-funciona" class="py-20 border-t border-dark-border/40 bg-dark-surface/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-bold tracking-widest text-brand-400 uppercase">Simplicidade Extrema</span>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Como usar o CorujaSync em 3 passos
+        </h2>
+        <p class="mt-4 text-base text-slate-300">
+          Você não precisa de conhecimentos avançados ou comandos no terminal. A interface cuida de tudo.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+        
+        <!-- Passo 1 -->
+        <div class="bg-dark-card p-8 rounded-2xl border border-dark-border relative">
+          <div class="w-10 h-10 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-sm mb-6 shadow-md shadow-brand-600/30">
+            1
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Cole o Link do Curso</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Copie a URL do seu pacote ou curso da sua área do aluno ou informe apenas o ID numérico do curso.
+          </p>
+        </div>
+
+        <!-- Passo 2 -->
+        <div class="bg-dark-card p-8 rounded-2xl border border-dark-border relative">
+          <div class="w-10 h-10 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-sm mb-6 shadow-md shadow-brand-600/30">
+            2
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Escolha as Opções</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Selecione a pasta do seu HD/SSD onde deseja salvar e ative se quer baixar também as videoaulas em HD.
+          </p>
+        </div>
+
+        <!-- Passo 3 -->
+        <div class="bg-dark-card p-8 rounded-2xl border border-dark-border relative">
+          <div class="w-10 h-10 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-sm mb-6 shadow-md shadow-emerald-600/30">
+            3
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Clique em Iniciar & Relaxe</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            O robô faz login seguro pelo navegador e transfere todo o material organizado perfeitamente para seu computador.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 6. TABELA COMPARATIVA (GRÁTIS VS PRO)                                     -->
+  <!-- ========================================================================= -->
+  <section id="comparativo" class="py-20 border-t border-dark-border/40">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-14">
+        <span class="text-xs font-bold tracking-widest text-brand-400 uppercase">Transparência Total</span>
+        <h2 class="mt-3 text-3xl font-extrabold text-white tracking-tight">
+          Compare: Versão Básica vs CorujaSync Pro
+        </h2>
+        <p class="mt-3 text-sm text-slate-300">
+          Você pode começar com a versão gratuita ou liberar o arsenal completo com a Licença Pro.
+        </p>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-dark-border bg-dark-card">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-dark-surface border-b border-dark-border text-xs uppercase tracking-wider text-slate-400">
+            <tr>
+              <th class="p-5 font-bold">Recurso / Funcionalidade</th>
+              <th class="p-5 font-bold text-center">Versão Básica (Trial)</th>
+              <th class="p-5 font-bold text-center text-brand-400">CorujaSync Pro ★</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-dark-border/60">
+            <tr>
+              <td class="p-5 font-medium text-white">Download de PDFs Teóricos e Resumos</td>
+              <td class="p-5 text-center text-emerald-400"><i data-lucide="check" class="w-5 h-5 mx-auto"></i></td>
+              <td class="p-5 text-center text-emerald-400 font-bold"><i data-lucide="check" class="w-5 h-5 mx-auto"></i></td>
+            </tr>
+            <tr>
+              <td class="p-5 font-medium text-white">Smart Resume 0,001s (Não repete downloads)</td>
+              <td class="p-5 text-center text-emerald-400"><i data-lucide="check" class="w-5 h-5 mx-auto"></i></td>
+              <td class="p-5 text-center text-emerald-400 font-bold"><i data-lucide="check" class="w-5 h-5 mx-auto"></i></td>
+            </tr>
+            <tr>
+              <td class="p-5 font-medium text-white">Download Ilimitado de Videoaulas em 720p HD</td>
+              <td class="p-5 text-center text-slate-500"><i data-lucide="minus" class="w-5 h-5 mx-auto"></i></td>
+              <td class="p-5 text-center text-emerald-400 font-bold"><i data-lucide="check" class="w-5 h-5 mx-auto"></i></td>
+            </tr>
+            <tr>
+              <td class="p-5 font-medium text-white">Motor de Busca Instantânea em PDFs (Spotlight)</td>
+              <td class="p-5 text-center text-slate-500"><i data-lucide="minus" class="w-5 h-5 mx-auto"></i></td>
+              <td class="p-5 text-center text-emerald-400 font-bold"><i data-lucide="check" class="w-5 h-5 mx-auto"></i></td>
+            </tr>
+            <tr>
+              <td class="p-5 font-medium text-white">Smart Watcher (Monitor de novas aulas)</td>
+              <td class="p-5 text-center text-slate-500"><i data-lucide="minus" class="w-5 h-5 mx-auto"></i></td>
+              <td class="p-5 text-center text-emerald-400 font-bold"><i data-lucide="check" class="w-5 h-5 mx-auto"></i></td>
+            </tr>
+            <tr>
+              <td class="p-5 font-medium text-white">Resiliência OTA (Atualização remota de seletores)</td>
+              <td class="p-5 text-center text-slate-500"><i data-lucide="minus" class="w-5 h-5 mx-auto"></i></td>
+              <td class="p-5 text-center text-emerald-400 font-bold"><i data-lucide="check" class="w-5 h-5 mx-auto"></i></td>
+            </tr>
+            <tr>
+              <td class="p-5 font-medium text-white">Suporte Prioritário para Mudanças de Layout</td>
+              <td class="p-5 text-center text-slate-500">Comunitário</td>
+              <td class="p-5 text-center text-emerald-400 font-bold">Direto & Prioritário</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 7. PLANOS & PREÇOS (TABELA COMERCIAL)                                     -->
+  <!-- ========================================================================= -->
+  <section id="planos" class="py-24 border-t border-dark-border/40 bg-dark-surface/50 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-bold tracking-widest text-emerald-400 uppercase">Investimento Único com Retorno Imediato</span>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Escolha o plano ideal para a sua aprovação
+        </h2>
+        <p class="mt-4 text-base text-slate-300">
+          Menos que o valor de um lanche por mês para garantir que você nunca perca o acesso aos cursos que pagou caro.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+        
+        <!-- Plano 1: Edital -->
+        <div class="bg-dark-card rounded-2xl border border-dark-border p-8 flex flex-col justify-between hover:border-slate-500 transition-all">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-bold text-white">Plano Edital</h3>
+              <span class="text-xs font-bold px-2.5 py-1 rounded bg-slate-800 text-slate-300">6 Meses</span>
+            </div>
+            <p class="text-xs text-slate-400 mb-6">Ideal para quem já está com edital aberto ou prova marcada no horizonte próximo.</p>
+            
+            <div class="mb-6">
+              <span class="text-4xl font-extrabold text-white">R$ 47</span>
+              <span class="text-xs text-slate-400 block mt-1">Pagamento único ou 12x de R$ 4,72</span>
+            </div>
+
+            <ul class="space-y-3 text-xs text-slate-300 mb-8 border-t border-dark-border/80 pt-6">
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Validade de 180 dias de licença</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Download Ilimitado de PDFs e Resumos</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Videoaulas em 720p HD liberadas</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Smart Resume ativado</li>
+              <li class="flex items-center gap-2 text-slate-500"><i data-lucide="x" class="w-4 h-4 text-slate-600"></i> Sem Smart Watcher periódico</li>
+            </ul>
+          </div>
+
+          <a id="btn-checkout-edital" href="#" target="_blank" class="w-full text-center py-3.5 px-4 rounded-xl text-sm font-bold bg-dark-surface hover:bg-dark-hover border border-dark-border text-white transition-all">
+            Adquirir Plano Edital
+          </a>
+        </div>
+
+        <!-- Plano 2: Vitalício (Destaque Principal) -->
+        <div class="bg-gradient-to-b from-dark-card to-dark-surface rounded-2xl border-2 border-brand-500 p-8 flex flex-col justify-between shadow-2xl shadow-brand-500/20 relative transform lg:-translate-y-2">
+          
+          <!-- Badge de Destaque -->
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-brand-600 to-emerald-500 text-white text-[11px] font-extrabold uppercase tracking-wider shadow-md">
+            ★ Mais Popular & Custo-Benefício
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-4 mt-2">
+              <h3 class="text-2xl font-black text-white">Plano Vitalício</h3>
+              <span class="text-xs font-bold px-2.5 py-1 rounded bg-brand-500/20 text-brand-300">Sem Expiração</span>
+            </div>
+            <p class="text-xs text-slate-300 mb-6">Pague uma única vez e use até a posse em quantos concursos você prestar.</p>
+            
+            <div class="mb-6">
+              <div class="flex items-baseline gap-2">
+                <span class="text-sm line-through text-slate-500">De R$ 297</span>
+                <span class="text-5xl font-black text-white">R$ 147</span>
+              </div>
+              <span class="text-xs text-emerald-400 font-semibold block mt-1">Pagamento Único • Acesso Vitalício sem Mensalidades</span>
+            </div>
+
+            <ul class="space-y-3.5 text-xs text-slate-200 mb-8 border-t border-dark-border/80 pt-6">
+              <li class="flex items-center gap-2 font-semibold"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Licença Vitalícia Sem Anuidade</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Downloads Ilimitados de PDFs e Livros</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Videoaulas em Resolução Máxima 720p HD</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Motor de Busca Spotlight nos PDFs</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Smart Watcher (Monitor de novas aulas)</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Atualizações automáticas de seletores OTA</li>
+              <li class="flex items-center gap-2 font-bold text-brand-300"><i data-lucide="sparkles" class="w-4 h-4 text-brand-400"></i> Suporte Prioritário Direto</li>
+            </ul>
+          </div>
+
+          <a id="btn-checkout-vitalicio" href="#" target="_blank" class="w-full text-center py-4 px-4 rounded-xl text-sm font-extrabold bg-brand-600 hover:bg-brand-500 text-white shadow-xl shadow-brand-600/40 transition-all transform hover:scale-[1.02]">
+            Garantir Acesso Vitalício Agora
+          </a>
+        </div>
+
+        <!-- Plano 3: Anual -->
+        <div class="bg-dark-card rounded-2xl border border-dark-border p-8 flex flex-col justify-between hover:border-slate-500 transition-all">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-bold text-white">Plano Anual</h3>
+              <span class="text-xs font-bold px-2.5 py-1 rounded bg-slate-800 text-slate-300">1 Ano</span>
+            </div>
+            <p class="text-xs text-slate-400 mb-6">Para concurseiros de médio prazo que estudam de forma contínua durante o ano.</p>
+            
+            <div class="mb-6">
+              <span class="text-4xl font-extrabold text-white">R$ 97</span>
+              <span class="text-xs text-slate-400 block mt-1">12 meses completos de atualizações</span>
+            </div>
+
+            <ul class="space-y-3 text-xs text-slate-300 mb-8 border-t border-dark-border/80 pt-6">
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Validade de 365 dias de licença</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Download de PDFs e Videoaulas HD</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Motor de Busca Spotlight nos PDFs</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Smart Resume em 0,001s</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Smart Watcher ativo</li>
+            </ul>
+          </div>
+
+          <a id="btn-checkout-anual" href="#" target="_blank" class="w-full text-center py-3.5 px-4 rounded-xl text-sm font-bold bg-dark-surface hover:bg-dark-hover border border-dark-border text-white transition-all">
+            Adquirir Plano Anual
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Card de Garantia Incondicional 7 Dias -->
+      <div class="mt-14 max-w-3xl mx-auto bg-dark-card rounded-2xl border border-dark-border p-6 flex flex-col sm:flex-row items-center gap-5">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+          <i data-lucide="shield-check" class="w-8 h-8"></i>
+        </div>
+        <div class="text-center sm:text-left">
+          <h4 class="text-base font-bold text-white mb-1">Garantia Incondicional de 7 Dias</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Teste o CorujaSync Pro com tranquilidade. Se o software não entregar o que promete ou se você não se adaptar, basta solicitar e devolveremos 100% do seu dinheiro sem perguntas ou burocracia.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 8. DOWNLOAD VERSÃO BÁSICA (TRIAL GRATUITO)                                -->
+  <!-- ========================================================================= -->
+  <section id="download-free" class="py-16 border-t border-dark-border/40">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="bg-gradient-to-r from-dark-card via-dark-surface to-dark-card p-8 sm:p-10 rounded-3xl border border-dark-border">
+        <span class="text-3xl mb-3 block">🦉</span>
+        <h3 class="text-2xl font-bold text-white mb-2">Prefere testar antes? Baixe a Versão Gratuita</h3>
+        <p class="text-sm text-slate-400 max-w-xl mx-auto mb-6">
+          Você pode baixar e experimentar o download de PDFs e livros teóricos com Smart Resume gratuitamente. Quando precisar de vídeos e busca, faça o upgrade com 1 clique.
+        </p>
+        <a id="btn-download-free" href="#" target="_blank" class="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-sm font-bold bg-dark-card hover:bg-dark-hover text-white border border-dark-border shadow-lg transition-all">
+          <i data-lucide="download" class="w-4 h-4 text-brand-400"></i>
+          <span>Baixar CorujaSync Grátis (Windows/Linux)</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 9. FAQ & SALVAGUARDAS LEGAIS                                              -->
+  <!-- ========================================================================= -->
+  <section id="faq" class="py-24 border-t border-dark-border/40 bg-dark-surface/40">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <span class="text-xs font-bold tracking-widest text-brand-400 uppercase">Tire Suas Dúvidas</span>
+        <h2 class="mt-3 text-3xl font-extrabold text-white tracking-tight">
+          Perguntas Frequentes & Salvaguardas Jurídicas
+        </h2>
+        <p class="mt-4 text-sm text-slate-300">
+          Entenda como funciona o CorujaSync, a segurança da sua conta e a legalidade do uso.
+        </p>
+      </div>
+
+      <div class="space-y-4" id="faq-accordion">
+        
+        <!-- Pergunta 1 -->
+        <div class="bg-dark-card rounded-xl border border-dark-border overflow-hidden">
+          <button class="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between gap-4" onclick="toggleFaq(this)">
+            <span>1. O uso da ferramenta para backup pessoal é legal no Brasil?</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300"></i>
+          </button>
+          <div class="faq-content hidden px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-dark-border/50 pt-3">
+            <strong>Sim, para uso estritamente privado.</strong> O Artigo 46, inciso II da Lei de Direitos Autorais (Lei Federal nº 9.610/98) estabelece expressamente que não constitui ofensa aos direitos autorais a reprodução, em um só exemplar de pequenos trechos ou obras completas, para uso estritamente privado do copista, sem intuito de lucro direto ou indireto. O CorujaSync destina-se única e exclusivamente a alunos legítimos que queiram realizar cópias de segurança para estudo offline.
+          </div>
+        </div>
+
+        <!-- Pergunta 2 -->
+        <div class="bg-dark-card rounded-xl border border-dark-border overflow-hidden">
+          <button class="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between gap-4" onclick="toggleFaq(this)">
+            <span>2. O CorujaSync remove marcas d'água ou dados de CPF dos arquivos?</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300"></i>
+          </button>
+          <div class="faq-content hidden px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-dark-border/50 pt-3">
+            <strong>Não! Absolutamente não.</strong> O CorujaSync preserva integralmente todos os metadados, identificadores digitais e marcas d'água de nome e CPF inseridos pela plataforma de ensino. Isso garante total rastreabilidade e incentiva o uso ético: o material continua vinculado à sua conta e é proibido compartilhá-lo (crime previsto no Art. 184 do Código Penal).
+          </div>
+        </div>
+
+        <!-- Pergunta 3 -->
+        <div class="bg-dark-card rounded-xl border border-dark-border overflow-hidden">
+          <button class="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between gap-4" onclick="toggleFaq(this)">
+            <span>3. Minhas senhas ou dados bancários passam por algum servidor externo?</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300"></i>
+          </button>
+          <div class="faq-content hidden px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-dark-border/50 pt-3">
+            <strong>Zero envio de dados.</strong> O aplicativo é 100% <em>client-side</em> e roda de forma nativa e local no seu sistema operacional. Nenhuma credencial, cookie ou arquivo trafega por servidores dos criadores do software. Todo o tráfego ocorre diretamente entre o seu computador e a plataforma original.
+          </div>
+        </div>
+
+        <!-- Pergunta 4 -->
+        <div class="bg-dark-card rounded-xl border border-dark-border overflow-hidden">
+          <button class="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between gap-4" onclick="toggleFaq(this)">
+            <span>4. E se o portal mudar o layout e os botões de lugar?</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300"></i>
+          </button>
+          <div class="faq-content hidden px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-dark-border/50 pt-3">
+            O CorujaSync v2.0 conta com <strong>Sincronização Remota de Seletores OTA (Over-The-Air)</strong> e interceptação inteligente de API. Se houver qualquer alteração visual no portal, nosso time atualiza os seletores na nuvem e o seu aplicativo se adapta automaticamente sem que você precise reinstalar o programa.
+          </div>
+        </div>
+
+        <!-- Pergunta 5 -->
+        <div class="bg-dark-card rounded-xl border border-dark-border overflow-hidden">
+          <button class="w-full p-5 text-left font-bold text-sm text-white flex items-center justify-between gap-4" onclick="toggleFaq(this)">
+            <span>5. Como recebo minha chave de ativação após a compra?</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300"></i>
+          </button>
+          <div class="faq-content hidden px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-dark-border/50 pt-3">
+            Imediatamente após a aprovação do pagamento pelo gateway (Kiwify/Hotmart), você recebe a sua chave no seu e-mail de compra (padrão <code class="bg-dark-surface px-1 py-0.5 rounded text-brand-300 font-mono">CSYNC-XXX-...</code>). Basta colar a chave na aba <strong>🔑 Licença Pro</strong> dentro do app para liberar todos os recursos na hora.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 10. RODAPÉ COM AVISO LEGAL E DESASSOCIAÇÃO                                 -->
+  <!-- ========================================================================= -->
+  <footer class="py-12 border-t border-dark-border bg-dark-bg text-slate-400 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-dark-border/50">
+        
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🦉</span>
+          <div>
+            <span class="text-base font-bold text-white">CorujaSync</span>
+            <p class="text-[11px] text-slate-500">Backup Inteligente e Organização de Cursos para Concursos</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-6">
+          <a href="#dores" class="hover:text-white transition-colors">O Problema</a>
+          <a href="#recursos" class="hover:text-white transition-colors">Recursos</a>
+          <a href="#planos" class="hover:text-white transition-colors">Preços</a>
+          <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
+          <a id="btn-support-link" href="#" class="text-brand-400 hover:text-brand-300 flex items-center gap-1 font-medium">
+            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Suporte WhatsApp
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Aviso Legal Rigoroso (Disclaimer de Marca) -->
+      <div class="pt-8 text-[11px] text-slate-500 space-y-2 leading-relaxed text-center sm:text-left">
+        <p>
+          <strong>AVISO LEGAL E DECLARAÇÃO DE INDEPENDÊNCIA:</strong> O CorujaSync é um software utilitário independente e de código aberto desenvolvido com finalidade exclusiva de automação de cópias de segurança (backup offline) e organização de materiais de estudo privados de titularidade legítima do próprio usuário, conforme preceitua o Art. 46, inciso II da Lei Federal nº 9.610/98 (Lei de Direitos Autorais).
+        </p>
+        <p>
+          Este software não possui qualquer afiliação, endosso, parceria, patrocínio ou relação comercial com a empresa Estratégia Concursos ou qualquer outra entidade de ensino. Todas as marcas nominativas citadas pertencem exclusivamente aos seus respectivos titulares e são mencionadas estritamente a título referencial e de compatibilidade operacional.
+        </p>
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-dark-border/30 mt-4">
+          <p>© 2026 CorujaSync. Todos os direitos reservados.</p>
+          <p>Desenvolvido para concurseiros focados na aprovação.</p>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- 11. SCRIPTS: CONFIGURAÇÃO, INTERATIVIDADE E TEMA                          -->
+  <!-- ========================================================================= -->
+  <script>
+    // -----------------------------------------------------------------------
+    // OBJETO DE CONFIGURAÇÃO CENTRALIZADO
+    // Edite aqui os seus links de venda, download e suporte facilmente!
+    // -----------------------------------------------------------------------
+    const APP_CONFIG = {
+      productName: "CorujaSync",
+      version: "2.0.0 Pro",
+      
+      // Link do instalador gratuito (GitHub Releases ou link direto)
+      downloadUrl: "https://github.com/DemiurgoGM/AutoDownloadEstrategiaConcurso/releases/latest",
+      
+      // Links de Checkout das Plataformas de Pagamento (Kiwify / Hotmart / Cakto)
+      checkoutEdital: "https://kiwify.com.br/plano-edital-corujasync",
+      checkoutAnual: "https://kiwify.com.br/plano-anual-corujasync",
+      checkoutVitalicio: "https://kiwify.com.br/plano-vitalicio-corujasync",
+      
+      // Contatos de Suporte
+      supportEmail: "suporte@corujasync.com",
+      whatsappUrl: "https://wa.me/5561999999999?text=Ol%C3%A1%2C%20tenho%20d%C3%BAvidas%20sobre%20o%20CorujaSync"
+    };
+
+    // Injeta links configurados dinamicamente nos botões da página
+    document.addEventListener("DOMContentLoaded", () => {
+      const elEdital = document.getElementById("btn-checkout-edital");
+      const elAnual = document.getElementById("btn-checkout-anual");
+      const elVitalicio = document.getElementById("btn-checkout-vitalicio");
+      const elFree = document.getElementById("btn-download-free");
+      const elSupport = document.getElementById("btn-support-link");
+
+      if (elEdital) elEdital.href = APP_CONFIG.checkoutEdital;
+      if (elAnual) elAnual.href = APP_CONFIG.checkoutAnual;
+      if (elVitalicio) elVitalicio.href = APP_CONFIG.checkoutVitalicio;
+      if (elFree) elFree.href = APP_CONFIG.downloadUrl;
+      if (elSupport) elSupport.href = APP_CONFIG.whatsappUrl;
+
+      // Inicializa ícones Lucide
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+
+    // -----------------------------------------------------------------------
+    // ALTERNADOR DE ABAS DO MOCKUP INTERATIVO
+    // -----------------------------------------------------------------------
+    function switchMockupTab(tabId) {
+      const allViews = ["download", "search", "watcher", "license", "settings"];
+      
+      allViews.forEach(v => {
+        const viewEl = document.getElementById(`mockup-view-${v}`);
+        const btnEl = document.getElementById(`tab-btn-${v}`);
+        
+        if (v === tabId) {
+          if (viewEl) viewEl.classList.remove("hidden");
+          if (btnEl) {
+            btnEl.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold bg-brand-600 text-white transition-all";
+          }
+        } else {
+          if (viewEl) viewEl.classList.add("hidden");
+          if (btnEl) {
+            btnEl.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-dark-card transition-all";
+          }
+        }
+      });
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // ACCORDION DO FAQ
+    // -----------------------------------------------------------------------
+    function toggleFaq(button) {
+      const content = button.nextElementSibling;
+      const icon = button.querySelector("i, svg");
+      
+      const isHidden = content.classList.contains("hidden");
+      
+      // Fecha todos os outros
+      document.querySelectorAll(".faq-content").forEach(el => el.classList.add("hidden"));
+      document.querySelectorAll("#faq-accordion i, #faq-accordion svg").forEach(el => el.style.transform = "rotate(0deg)");
+
+      if (isHidden) {
+        content.classList.remove("hidden");
+        if (icon) icon.style.transform = "rotate(180deg)";
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // ALTERNADOR DARK / LIGHT MODE
+    // -----------------------------------------------------------------------
+    const themeBtn = document.getElementById("theme-toggle");
+    const htmlEl = document.documentElement;
+
+    // Recupera tema prévio
+    const savedTheme = localStorage.getItem("corujasync_theme") || "dark";
+    if (savedTheme === "light") {
+      htmlEl.classList.remove("dark");
+      htmlEl.classList.add("light");
+    } else {
+      htmlEl.classList.add("dark");
+      htmlEl.classList.remove("light");
+    }
+
+    themeBtn.addEventListener("click", () => {
+      if (htmlEl.classList.contains("dark")) {
+        htmlEl.classList.remove("dark");
+        htmlEl.classList.add("light");
+        localStorage.setItem("corujasync_theme", "light");
+      } else {
+        htmlEl.classList.add("dark");
+        htmlEl.classList.remove("light");
+        localStorage.setItem("corujasync_theme", "dark");
+      }
+    });
+
+    // -----------------------------------------------------------------------
+    // MENU MOBILE
+    // -----------------------------------------------------------------------
+    const mobileBtn = document.getElementById("mobile-menu-btn");
+    const mobileMenu = document.getElementById("mobile-menu");
+
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
+      // Fecha ao clicar em um link
+      mobileMenu.querySelectorAll("a").forEach(a => {
+        a.addEventListener("click", () => mobileMenu.classList.add("hidden"));
+      });
+    }
+  </script>
+
+</body>
+</html>
