@@ -1,8 +1,8 @@
 import os
+import sys
 import re
 import time
 import argparse
-import sys
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -1312,4 +1312,12 @@ def main():
 
 
 if __name__ == "__main__":
+    _local_lib = os.path.expanduser("~/.local/usr/lib")
+    if os.path.isdir(_local_lib) and sys.platform != "win32":
+        _curr_ld = os.environ.get("LD_LIBRARY_PATH", "")
+        if _local_lib not in _curr_ld:
+            os.environ["LD_LIBRARY_PATH"] = f"{_local_lib}:{_curr_ld}"
+            os.environ["TCL_LIBRARY"] = os.path.join(_local_lib, "tcl8.6")
+            os.environ["TK_LIBRARY"] = os.path.join(_local_lib, "tk8.6")
+            os.execv(sys.executable, [sys.executable, os.path.abspath(__file__)] + sys.argv[1:])
     main()
