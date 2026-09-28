@@ -1,7 +1,7 @@
 # Memória de Projeto e Handover do Sistema Completo
 
 **Data:** 28 de Setembro de 2026  
-**Status Atual:** Arquitetura Modular, GUI Moderna, Blindagem Jurídica, Resiliência OTA, Diagnóstico Semântico, Sistema de Licenciamento Criptográfico e Recursos Premium (**Smart Watcher** + **Indexador de Busca**) concluídos e testados com **100% de sucesso (38 testes unitários aprovados)**.  
+**Status Atual:** Arquitetura Modular, **GUI Moderna Profissional (Sidebar + Cards + Telemetria)**, Blindagem Jurídica, Resiliência OTA, Diagnóstico Semântico, Sistema de Licenciamento Criptográfico e Recursos Premium (**Smart Watcher** + **Indexador de Busca Offline**) concluídos e testados com **100% de sucesso (44 testes unitários aprovados)**.  
 **Branch:** `master`
 
 ---
@@ -17,48 +17,45 @@
 - **`core/crawler.py` & `core/processor.py`:** Extração e processamento de catálogo de cursos, pacotes, disciplinas, aulas e videoaulas desacoplados da interface.
 - **`browser/driver_manager.py`:** Detecção e fallback automático entre navegadores instalados (**Microsoft Edge**, **Google Chrome**, **Mozilla Firefox**) via Selenium Manager nativo.
 
-### B. Frente 1: Resiliência contra Mudanças de Layout (Seletores OTA e Interceptação de API)
-- **`core/selectors.json`:** Mapeamento completo e versionado de seletores para todas as telas (login, popups, lista de cursos, pacotes, disciplinas, aulas, PDFs e vídeos).
-- **`core/selector_manager.py`:**
-  - Suporte nativo a **cadeias de fallback** (se o seletor primário falhar, testa alternativas em cascata).
-  - Cache local versionado em `~/.config/autoconcursodownloader/selectors_cache.json`.
-  - Atualização remota **Over-The-Air (OTA)** transparente: atualizações de classes CSS e layouts do site são corrigidas na nuvem sem precisar recompilar ou redistribuir o `.exe`.
-  - Atualização assíncrona não bloqueante no boot da aplicação (`fetch_remote_async`).
-- **`core/api_extractor.py`:**
-  - **Bypass total de CSS:** intercepta estruturas de dados internas (`window.__NEXT_DATA__` e estados globais de SPAs). Aulas e IDs são extraídos mesmo se todas as classes CSS forem alteradas.
-  - Varredura de segurança em código-fonte HTML via regex para URLs de APIs e mídias diretas.
-  - Extração de tokens de autorização de `localStorage` e `sessionStorage`.
+### B. Interface Gráfica Moderna e Profissional (Reestilização Completa)
+- **`ui/gui/theme.py`:** Design System com paleta unificada em Dark/Light Mode, cantos arredondados padronizados (`corner_radius=10` e `12`) e bordas elegantes de 1px.
+- **`ui/gui/views/sidebar.py`:** Barra lateral fixa de navegação (220px) com cabeçalho de marca `⚡ Concurso DL` + `PRO v2.0`, botões com estados ativos destacados (`#3B82F6`), indicador de status em tempo real (`🟢 Pronto`, `🔵 Baixando`) e alternador rápido de tema.
+- **`ui/gui/views/download_view.py`:** Estúdio de download em cards visuais:
+  - `CTkSegmentedButton` para seleção de modo (`Pacote/Curso` vs `Todos Matriculados`).
+  - `CTkSwitch` para videoaulas e `CTkSegmentedButton` para resoluções (`720p HD`, `480p`, `360p`).
+  - **Dashboard de Telemetria:** Mini-cards com **Arquivo Ativo**, **Velocidade em MB/s**, **Tempo Estimado (ETA)** e barra de progresso com porcentagem dinâmica.
+  - **Terminal de Logs:** Console dark monospace com tags coloridas por nível de mensagem e botão de limpar logs.
+- **`ui/gui/views/search_view.py`:** Estúdio de busca textual instantânea estilo Spotlight em todos os PDFs baixados com indicação de página, disciplina e visualização de snippets com botão direto de abrir PDF no SO.
+- **`ui/gui/views/watcher_view.py`:** Painel de controle do Smart Watcher com status do monitoramento, frequência configurável e histórico de aulas detectadas.
+- **`ui/gui/views/license_view.py`:** Painel de licenciamento com Machine ID copiável com 1 clique e ativação de chaves criptográficas.
+- **`ui/gui/views/settings_view.py` & `about_view.py`:** Gestão de credenciais com alternador de visibilidade de senha (👁️), seleção do navegador e contrato de EULA.
+- **`ui/gui/app.py`:** Orquestrador principal moderno e manutenível (menos de 270 linhas), com suporte transparente a bibliotecas Tcl/Tk e encerramento limpo.
 
-### C. Frente 2: Motor de Diagnóstico "Esperado vs. Encontrado"
+### C. Resiliência contra Mudanças de Layout (Seletores OTA e Interceptação de API)
+- **`core/selectors.json`:** Mapeamento completo e versionado de seletores para todas as telas (login, popups, cursos, pacotes, disciplinas, aulas, PDFs e vídeos).
+- **`core/selector_manager.py`:** Cadeia de fallbacks automática, cache local versionado e sincronização Over-The-Air (OTA) assíncrona.
+- **`core/api_extractor.py`:** Bypass total de CSS via interceptação de estado interno (`window.__NEXT_DATA__` e SPAs) e varredura direta via regex no código-fonte.
+
+### D. Motor de Diagnóstico "Esperado vs. Encontrado"
 - **`core/diagnostics.py`:**
-  - **Higienização estrita LGPD:** Mascara CPFs, e-mails, senhas e tokens de autorização antes de qualquer geração de log ou snapshot.
-  - **Snapshot Semântico:** Captura resumo estruturado do DOM (botões visíveis, links de download, cabeçalhos e amostra sanitizada do HTML) comparando o elemento esperado com o que foi renderizado.
-  - **`DiagnosticsStore`:** Armazena falhas em memória e permite exportar relatório `.json` para suporte.
-- **Botão na GUI (`ui/gui/app.py`):** Botão *"🛠 Exportar Diagnóstico"* na aba de Download que salva o arquivo com 1 clique.
+  - Higienização estrita LGPD (mascara CPFs, e-mails, senhas e tokens).
+  - Snapshot semântico do DOM em caso de falhas ou elementos ausentes.
+  - Exportação de relatório `.json` para suporte com 1 clique diretamente pelo botão da interface.
 
-### D. Frente 3: Comercialização e Sistema de Licenciamento
+### E. Sistema de Licenciamento Criptográfico
 - **`legal/license_manager.py`:**
-  - **Machine ID Determinístico e Anônimo:** Gera hash único de hardware (`XXXX-XXXX-XXXX-XXXX`) sem expor dados pessoais.
-  - **Chaves Criptográficas Assinadas (HMAC-SHA256):** Padrão `CDL-<TIER>-<BASE64_PAYLOAD>-<SIGNATURE>` antifraude.
-  - **Suporte a Múltiplos Planos:** Vitalício (sem expiração), Anual (365 dias), Edital (180 dias) ou customizado.
-  - **Trava de Máquina:** Suporta licenças flutuantes (`ANY`) ou travadas ao computador do comprador.
-- **CLI para Checkout / Webhooks (`tools/generate_license.py`):**
-  - Permite criar chaves instantaneamente via terminal ou integrar a webhooks de plataformas como **Kiwify**, **Hotmart** ou **Cakto**.
-- **Interface de Ativação na GUI:**
-  - Exibe o Machine ID do cliente na aba *Configurações & Login*, campo de inserção da chave e feedback visual de ativação com persistência atômica.
+  - Machine ID determinístico e anônimo (`XXXX-XXXX-XXXX-XXXX`).
+  - Assinatura digital HMAC-SHA256 à prova de falsificação offline (`CDL-<TIER>-<PAYLOAD>-<SIG>`).
+  - Suporte a múltiplos planos (Vitalício, Anual, Edital) com ou sem trava de máquina.
+- **`tools/generate_license.py`:** Utilitário CLI para geração de licenças e integração via webhook com plataformas de pagamento (**Kiwify**, **Hotmart**, **Cakto**).
 
-### E. Frente 4: Recursos Premium e Distribuição
-- **Smart Watcher (`core/watcher.py`):**
-  - Monitor inteligente periódico que compara o catálogo online com o `.download_state.json`.
-  - Detecta e baixa automaticamente apenas novas aulas e materiais publicados após o download inicial.
-- **Indexador e Busca Global Offline (`core/indexer.py`):**
-  - Motor de busca textual de alta performance em todos os PDFs baixados no computador.
-  - Localiza termos, jurisprudências e leis em segundos com número de página, nome da disciplina e snippet de contexto.
-- **Instalador Profissional Windows (`installer/concursodownloader.iss`):**
-  - Script Inno Setup 6 pronto para gerar `Setup_ConcursoDownloader_v2.0.0.exe` com atalhos na Área de Trabalho/Menu Iniciar e desinstalador.
+### F. Recursos Premium
+- **Smart Watcher (`core/watcher.py`):** Monitor inteligente periódico que detecta e sincroniza apenas novas aulas postadas após o download inicial.
+- **Indexador de PDFs (`core/indexer.py`):** Motor de busca textual em milissegundos em toda a biblioteca baixada no computador.
+- **Instalador Inno Setup (`installer/concursodownloader.iss`):** Script para compilar instaladores Windows `.exe` profissionais com atalhos e assistente visual.
 
-### F. Suíte de Testes
-- **38 testes unitários automatizados** passando com **100% de sucesso** (`python -m unittest discover -v`):
+### G. Suíte Completa de Testes
+- **44 testes unitários automatizados** passando com **100% de sucesso**:
   - `test_download_ui.py`
   - `test_state_manager.py`
   - `test_process_courses.py`
@@ -66,45 +63,28 @@
   - `test_legal_and_config.py`
   - `test_resilience_and_selectors.py`
   - `test_diagnostics_and_commercial.py`
+  - `test_gui_components.py`
 
 ---
 
-## 💻 2. Guia de Comandos Úteis
+## 💻 2. Guia Rápido de Comandos
 
-### Iniciar Aplicação
+### Executar a Interface Gráfica Reestilizada
 ```bash
-# Iniciar a Interface Gráfica moderna
 python main.py
-
-# Iniciar modo CLI para download de pacote
-python main.py --curso 400565 --videos --qualidade 720p
 ```
 
-### Gerar Chaves de Licença para Clientes
-```bash
-# Exibir o Machine ID do computador atual
-python tools/generate_license.py my-machine
-
-# Gerar licença anual vinculada ao e-mail do comprador
-python tools/generate_license.py create --client aluno@gmail.com --tier anual
-
-# Gerar licença vitalícia travada no Machine ID do cliente
-python tools/generate_license.py create --client aluno@gmail.com --tier vitalicio --machine ABCD-EF12-3456-7890
-
-# Validar uma chave de licença
-python tools/generate_license.py verify CDL-ANU-eyJjbGllbnQiOiJhbHVub0BnbWFpbC5jb20iLCJleHBpcmVzX2F0IjoiMjAyNy0wOS0yOCIsImlzc3VlZF9hdCI6IjIwMjYtMDktMjgiLCJtYWNoaW5lX2lkIjoiQU5ZIiwidGllciI6ImFudWFsIn0-60EFBFBDE78F3699
-```
-
-### Rodar a Suíte Completa de Testes
+### Executar a Suíte Completa de Testes (44 Testes)
 ```bash
 python -m unittest discover -v
 ```
 
-### Compilar Executável e Gerar Instalador
+### Gerar Chave de Licença para Cliente (Terminal ou Webhook)
 ```bash
-# Compilar executável autônomo com PyInstaller
-python build_desktop.py
+python tools/generate_license.py create --client comprador@gmail.com --tier vitalicio
+```
 
-# Gerar instalador Setup.exe para Windows (usando Inno Setup Compiler)
-iscc installer/concursodownloader.iss
+### Compilar Executável Standalone
+```bash
+python build_desktop.py
 ```
