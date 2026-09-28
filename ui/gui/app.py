@@ -200,6 +200,15 @@ class ConcursoDownloaderApp(ctk.CTk):
         )
         self.btn_stop.pack(side="left")
 
+        self.btn_diag = ctk.CTkButton(
+            btn_row,
+            text="🛠 Exportar Diagnóstico",
+            fg_color="#455A64",
+            hover_color="#37474F",
+            command=self._export_diagnostics,
+        )
+        self.btn_diag.pack(side="right")
+
         # Painel Central de Progresso
         progress_box = ctk.CTkFrame(self.tab_download)
         progress_box.pack(fill="x", padx=10, pady=(5, 10))
@@ -298,6 +307,47 @@ class ConcursoDownloaderApp(ctk.CTk):
         )
         self.opt_theme.pack(side="left")
 
+        # Seção Licenciamento & Ativação
+        lbl_lic = ctk.CTkLabel(
+            container, text="Licenciamento & Ativação Premium", font=ctk.CTkFont(size=14, weight="bold")
+        )
+        lbl_lic.pack(anchor="w", padx=15, pady=(20, 5))
+
+        from legal.license_manager import LicenseManager, get_machine_id
+        lm = LicenseManager()
+        lic_status = lm.get_status()
+
+        row_mid = ctk.CTkFrame(container, fg_color="transparent")
+        row_mid.pack(fill="x", padx=15, pady=2)
+        ctk.CTkLabel(row_mid, text="ID da Máquina:", width=110, anchor="w").pack(side="left")
+        entry_mid = ctk.CTkEntry(row_mid, width=220)
+        entry_mid.insert(0, get_machine_id())
+        entry_mid.configure(state="readonly")
+        entry_mid.pack(side="left")
+
+        row_key = ctk.CTkFrame(container, fg_color="transparent")
+        row_key.pack(fill="x", padx=15, pady=5)
+        ctk.CTkLabel(row_key, text="Chave de Licença:", width=110, anchor="w").pack(side="left")
+        self.entry_license_key = ctk.CTkEntry(row_key, width=320, placeholder_text="Cole sua chave (CDL-...)")
+        if lic_status.get("license_key"):
+            self.entry_license_key.insert(0, lic_status["license_key"])
+        self.entry_license_key.pack(side="left", padx=(0, 10))
+
+        btn_activate = ctk.CTkButton(
+            row_key,
+            text="Ativar Chave",
+            width=100,
+            command=self._activate_license_key,
+        )
+        btn_activate.pack(side="left")
+
+        status_text = f"Status: {lic_status.get('tier', '').upper()} - {lic_status.get('message')}"
+        status_color = "#4CAF50" if lic_status.get("is_active") else "#FF9800"
+        self.lbl_lic_status = ctk.CTkLabel(
+            container, text=status_text, font=ctk.CTkFont(size=11, weight="bold"), text_color=status_color
+        )
+        self.lbl_lic_status.pack(anchor="w", padx=15, pady=(2, 10))
+
         btn_save = ctk.CTkButton(
             container,
             text="Salvar Preferências",
@@ -306,7 +356,7 @@ class ConcursoDownloaderApp(ctk.CTk):
             width=160,
             command=self._save_settings,
         )
-        btn_save.pack(anchor="w", padx=15, pady=25)
+        btn_save.pack(anchor="w", padx=15, pady=20)
 
     def _build_about_tab(self):
         container = ctk.CTkFrame(self.tab_about)
@@ -358,6 +408,47 @@ class ConcursoDownloaderApp(ctk.CTk):
         if selected:
             self.entry_dir.delete(0, "end")
             self.entry_dir.insert(0, selected)
+
+    def _export_diagnostics(self):
+        from core.diagnostics import DiagnosticsStore
+        from datetime import datetime
+
+        default_name = f"diagnostico_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        target = filedialog.asksaveasfilename(
+            parent=self,
+            title="Salvar Relatório de Diagnóstico Seguro",
+            initialfile=default_name,
+            filetypes=[("Arquivo JSON", "*.json"), ("Todos os Arquivos", "*.*")],
+        )
+        if target:
+            try:
+                saved_path = DiagnosticsStore.get_instance().export_report_file(target)
+                self._append_log(f"\n[INFO] Relatório de diagnóstico exportado para: {saved_path}\n", tag="success")
+                messagebox.showinfo(
+                    "Diagnóstico Exportado",
+                    f"O relatório de diagnóstico seguro foi salvo com sucesso em:\n\n{saved_path}\n\nEnvie este arquivo ao suporte para análise técnica.",
+                )
+            except Exception as e:
+                self._append_log(f"\n[ERRO] Falha ao exportar diagnóstico: {e}\n", tag="error")
+                messagebox.showerror("Erro", f"Não foi possível salvar o diagnóstico: {e}")
+
+    def _activate_license_key(self):
+        from legal.license_manager import LicenseManager
+        key = self.entry_license_key.get().strip()
+        if not key:
+            messagebox.showwarning("Aviso", "Por favor, informe uma chave de licença válida.")
+            return
+
+        lm = LicenseManager()
+        success, msg = lm.activate(key)
+        if success:
+            self.lbl_lic_status.configure(text=f"Status: ATIVA - {msg}", text_color="#4CAF50")
+            self._append_log(f"\n[✓] {msg}\n", tag="success")
+            messagebox.showinfo("Sucesso", msg)
+        else:
+            self.lbl_lic_status.configure(text=f"Status: INVÁLIDA - {msg}", text_color="#D32F2F")
+            self._append_log(f"\n[ERRO] Ativação falhou: {msg}\n", tag="error")
+            messagebox.showerror("Falha na Ativação", msg)
 
     def _on_mode_change(self):
         if self.mode_var.get() == "batch":

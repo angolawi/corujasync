@@ -17,6 +17,7 @@ from core.events import DownloadObserver, StatusEvent, VideoEvent
 from core.downloader import sanitize_filename, download_file
 from core.selector_manager import get_selector_manager
 from core.api_extractor import extract_lessons_from_state
+from core.diagnostics import DiagnosticsStore
 
 BASE_URL = "https://www.estrategiaconcursos.com.br"
 MY_COURSES_URL = urljoin(BASE_URL, "/app/dashboard/cursos")
@@ -182,7 +183,13 @@ def get_courses_from_pacote(
     try:
         sm.wait_presence(driver, "package_wait", timeout=30)
         time.sleep(2)
-    except TimeoutException:
+    except TimeoutException as e:
+        DiagnosticsStore.get_instance().record_failure(
+            driver,
+            expected_action="carregar_disciplinas_pacote",
+            expected_selector="package_wait",
+            error_message=str(e),
+        )
         if observer:
             observer.on_status(
                 StatusEvent(
@@ -269,7 +276,13 @@ def get_lesson_data(
     try:
         sm.wait_presence(driver, "lessons_wait", timeout=30)
         time.sleep(2)
-    except TimeoutException:
+    except TimeoutException as e:
+        DiagnosticsStore.get_instance().record_failure(
+            driver,
+            expected_action="carregar_aulas_disciplina",
+            expected_selector="lessons_wait",
+            error_message=str(e),
+        )
         if observer:
             observer.on_status(StatusEvent(level="warning", message="Tempo esgotado ao carregar lista de aulas."))
         return []

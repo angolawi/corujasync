@@ -25,6 +25,7 @@ from core.state_manager import DownloadStateManager
 from core.crawler import handle_popups, get_lesson_data
 from core.selector_manager import get_selector_manager
 from core.api_extractor import extract_materials_from_page_source
+from core.diagnostics import DiagnosticsStore
 
 
 def download_video_materials(
@@ -374,6 +375,14 @@ def download_lesson_materials(
                             pdfs_encontrados += 1
             elif observer:
                 observer.on_status(StatusEvent(level="info", message="Nenhum PDF encontrado nesta aula."))
+
+        if pdfs_encontrados == 0 and not download_videos:
+            DiagnosticsStore.get_instance().record_failure(
+                driver,
+                expected_action="localizar_pdf_aula",
+                expected_selector="lesson_pdf_links",
+                error_message=f"Nenhum PDF identificado na aula '{lesson_title}'",
+            )
 
         if download_videos:
             video_files = download_video_materials(
