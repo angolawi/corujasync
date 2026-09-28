@@ -26,6 +26,7 @@ from core.crawler import handle_popups, get_lesson_data
 from core.selector_manager import get_selector_manager
 from core.api_extractor import extract_materials_from_page_source
 from core.diagnostics import DiagnosticsStore
+from legal.license_manager import LicenseManager
 
 
 def download_video_materials(
@@ -432,9 +433,23 @@ def process_courses(
     download_videos: bool = False,
     preferred_quality: str = "720p",
     cancel_flag: Optional[callable] = None,
+    license_mgr: Optional[Any] = None,
 ) -> None:
-    """Executa a iteração sobre disciplinas e aulas com Smart Resume e emissão de eventos."""
+    """Executa a iteração sobre disciplinas e aulas com Smart Resume, limites de Plano Free e emissão de eventos."""
     total_cursos = len(courses)
+    if license_mgr is None:
+        license_mgr = LicenseManager()
+
+    is_pro = license_mgr.is_premium()
+    disciplines_completed_in_run = 0
+
+    if not is_pro and observer:
+        observer.on_status(
+            StatusEvent(
+                level="info",
+                message="[PLANO FREE / DEMONSTRAÇÃO] Limite de 1 disciplina completa para teste neste computador.",
+            )
+        )
 
     for i, course in enumerate(courses, start=1):
         if cancel_flag and cancel_flag():
@@ -444,6 +459,52 @@ def process_courses(
 
         disciplina_title = course["title"]
         disciplina_url = course["url"]
+
+        # Checagem de limite do Plano Free (se não for Pro)
+        if not is_pro:
+            # 1. Se já completou 1 disciplina durante ESTA sessão/execução:
+            if disciplines_completed_in_run >= 1:
+                if observer:
+                    observer.on_status(
+                        StatusEvent(
+                            level="warning",
+                            message=(
+                                f"[PLANO FREE] Limite de demonstração atingido: 1 disciplina já foi baixada nesta sessão. "
+                                f"A disciplina '{disciplina_title}' foi pulada. Para baixar o pacote completo, adquira uma Licença Pro."
+                            ),
+                        )
+                    )
+                    observer.on_discipline(
+                        DisciplineEvent(
+                            index=i,
+                            total=total_cursos,
+                            title=disciplina_title,
+                            status="skipped",
+                            reason="Limite do Plano Free (1 disciplina de demonstração)",
+                        )
+                    )
+                continue
+
+            # 2. Se o computador já consumiu a quota de demonstração em execução anterior:
+            allowed, block_reason = license_mgr.can_download_discipline(disciplina_title)
+            if not allowed:
+                if observer:
+                    observer.on_status(
+                        StatusEvent(
+                            level="warning",
+                            message=f"[PLANO FREE] {block_reason}",
+                        )
+                    )
+                    observer.on_discipline(
+                        DisciplineEvent(
+                            index=i,
+                            total=total_cursos,
+                            title=disciplina_title,
+                            status="skipped",
+                            reason="Limite do Plano Free atingido (1 disciplina já baixada)",
+                        )
+                    )
+                continue
 
         if not force and state_mgr.is_discipline_completed(disciplina_title, check_videos=download_videos):
             if observer:
@@ -524,6 +585,9 @@ def process_courses(
             state_mgr.mark_discipline_completed(
                 disciplina_title, len(lessons), videos_completed=download_videos
             )
+            license_mgr.record_free_discipline_completed(disciplina_title)
+            disciplines_completed_in_run += 1
+
             if observer:
                 observer.on_discipline(
                     DisciplineEvent(
@@ -534,3 +598,14 @@ def process_courses(
                         lesson_count=len(lessons),
                     )
                 )
+                if not is_pro and total_cursos > 1:
+                    observer.on_status(
+                        StatusEvent(
+                            level="info",
+                            message=(
+                                f"★ Demonstração concluída com sucesso para '{disciplina_title}'! "
+                                f"Para baixar as outras {total_cursos - 1} disciplinas deste pacote, "
+                                f"desbloqueie a versão Pro em https://corujasync.com."
+                            ),
+                        )
+                    )

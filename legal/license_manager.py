@@ -182,3 +182,55 @@ class LicenseManager:
         """Indica se o cliente possui licença válida ativa."""
         status = self.get_status()
         return status.get("is_active", False)
+
+    def can_download_discipline(self, discipline_title: str) -> Tuple[bool, str]:
+        """
+        Verifica se o usuário tem permissão para baixar a disciplina fornecida.
+        Usuários Pro possuem download ilimitado.
+        Usuários Free/Trial só podem baixar no máximo 1 disciplina para demonstração.
+        """
+        if self.is_premium():
+            return True, ""
+
+        cfg = load_config()
+        used_discipline = cfg.get("trial_discipline_completed")
+        if used_discipline:
+            # Normaliza para permitir reexecução ou retomada da mesma disciplina de teste
+            norm_used = "".join(ch for ch in str(used_discipline).lower() if ch.isalnum())
+            norm_current = "".join(ch for ch in str(discipline_title).lower() if ch.isalnum())
+            if norm_used == norm_current:
+                return True, ""
+
+            return (
+                False,
+                f"Limite da versão de demonstração (Plano Free) atingido: 1 disciplina ('{used_discipline}') "
+                f"já foi baixada neste computador. Para baixar '{discipline_title}' e ter downloads ilimitados, "
+                f"adquira uma Licença Pro."
+            )
+
+        return True, ""
+
+    def record_free_discipline_completed(self, discipline_title: str) -> None:
+        """
+        Registra que a disciplina de teste do plano Free foi concluída com sucesso.
+        """
+        if self.is_premium():
+            return
+
+        cfg = load_config()
+        if not cfg.get("trial_discipline_completed"):
+            cfg["trial_discipline_completed"] = discipline_title
+            cfg["trial_discipline_at"] = datetime.now().isoformat()
+            cfg["trial_machine_id"] = self.current_machine_id
+            save_config(cfg)
+
+    def get_free_tier_status(self) -> Dict[str, Any]:
+        """Retorna informações sobre o consumo da quota do plano Free."""
+        cfg = load_config()
+        used = cfg.get("trial_discipline_completed")
+        return {
+            "quota_used": bool(used),
+            "discipline_completed": used,
+            "completed_at": cfg.get("trial_discipline_at"),
+            "machine_id": self.current_machine_id,
+        }

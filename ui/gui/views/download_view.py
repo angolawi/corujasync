@@ -12,6 +12,7 @@ from ui.gui.theme import (
 )
 from core.config import get_default_download_dir
 from core.diagnostics import DiagnosticsStore
+from legal.license_manager import LicenseManager
 from datetime import datetime
 
 
@@ -33,6 +34,7 @@ class DownloadView(ctk.CTkScrollableFrame):
         self.config = config
         self.on_start = on_start
         self.on_stop = on_stop
+        self.license_manager = LicenseManager()
 
         self._build_ui()
 
@@ -41,15 +43,35 @@ class DownloadView(ctk.CTkScrollableFrame):
         card_target = create_card_frame(self)
         card_target.pack(fill="x", padx=15, pady=(15, 10))
 
-        # Título da Seção
+        # Título da Seção + Badge de Plano
+        head_row = ctk.CTkFrame(card_target, fg_color="transparent")
+        head_row.pack(fill="x", padx=15, pady=(12, 8))
+
         lbl_target_title = ctk.CTkLabel(
-            card_target,
+            head_row,
             text="1. Modo e Seleção de Conteúdo",
             font=get_font(14, "bold"),
             text_color=THEME_COLORS["text_primary"],
             anchor="w",
         )
-        lbl_target_title.pack(fill="x", padx=15, pady=(12, 8))
+        lbl_target_title.pack(side="left")
+
+        is_pro = self.license_manager.is_premium()
+        badge_text = "★ LICENÇA PRO ATIVA" if is_pro else "★ PLANO FREE (1 DISCIPLINA DEMO)"
+        badge_fg = ("#D1FAE5", "#064E3B") if is_pro else ("#FEF3C7", "#78350F")
+        badge_tc = ("#065F46", "#34D399") if is_pro else ("#92400E", "#FBBF24")
+
+        lbl_plan_badge = ctk.CTkLabel(
+            head_row,
+            text=badge_text,
+            font=get_font(10, "bold"),
+            fg_color=badge_fg,
+            text_color=badge_tc,
+            corner_radius=6,
+            padx=8,
+            pady=2,
+        )
+        lbl_plan_badge.pack(side="right")
 
         # Segmented Button para o Modo
         self.mode_var = ctk.StringVar(value="single")

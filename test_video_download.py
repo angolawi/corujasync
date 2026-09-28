@@ -18,11 +18,18 @@ class TestVideoDownload(unittest.TestCase):
 
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
+        self.config_patch = patch("core.config.CONFIG_FILE_PATH", os.path.join(self.test_dir, "config.json"))
+        self.app_dir_patch = patch("core.config.get_app_dir", return_value=self.test_dir)
+        self.config_patch.start()
+        self.app_dir_patch.start()
+
         self.ui = DownloadUI(no_color=True)
         self.http_session = MagicMock()
         self.driver = MagicMock()
 
     def tearDown(self):
+        self.config_patch.stop()
+        self.app_dir_patch.stop()
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
     def test_empty_playlist_returns_empty_list(self):

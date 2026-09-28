@@ -21,6 +21,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from state_manager import DownloadStateManager
 from download_ui import DownloadUI
+from legal.license_manager import LicenseManager
 
 # ---------------------------------------------------------------------------
 # Configurações
@@ -760,19 +761,59 @@ def process_courses(
     force: bool = False,
     download_videos: bool = False,
     preferred_quality: str = "720p",
+    license_mgr=None,
 ):
     """
     Executa a iteração sobre disciplinas e aulas de forma inteligente:
     - Pula instantaneamente disciplinas já concluídas no histórico (0s Selenium).
+    - Aplica o limite da versão de demonstração (Plano Free: máximo 1 disciplina).
     - Se encontrar pasta em disco de sessões anteriores, faz bootstrap rápido.
     - Para disciplinas incompletas, pula direto para as aulas pendentes.
     - Salva estado atômico a cada aula e disciplina.
     """
     total_cursos = len(courses)
+    if license_mgr is None:
+        license_mgr = LicenseManager()
+
+    is_pro = license_mgr.is_premium()
+    disciplines_completed_in_run = 0
+
+    if not is_pro and ui:
+        ui.log_info("[PLANO FREE / DEMONSTRAÇÃO] Limite de 1 disciplina para teste neste computador.")
 
     for i, course in enumerate(courses, start=1):
         disciplina_title = course["title"]
         disciplina_url = course["url"]
+
+        # Checagem de limite do Plano Free (se não for Pro)
+        if not is_pro:
+            # 1. Se já completou 1 disciplina durante ESTA sessão/execução:
+            if disciplines_completed_in_run >= 1:
+                if ui:
+                    ui.log_warning(
+                        f"[PLANO FREE] Limite de demonstração atingido: 1 disciplina já foi baixada nesta sessão. "
+                        f"'{disciplina_title}' foi pulada. Para baixar o pacote completo, adquira a Licença Pro."
+                    )
+                    ui.log_discipline_skip(
+                        i,
+                        total_cursos,
+                        disciplina_title,
+                        reason="Limite do Plano Free (1 disciplina de demonstração)",
+                    )
+                continue
+
+            # 2. Se o computador já consumiu a quota de demonstração em execução anterior:
+            allowed, block_reason = license_mgr.can_download_discipline(disciplina_title)
+            if not allowed:
+                if ui:
+                    ui.log_warning(f"[PLANO FREE] {block_reason}")
+                    ui.log_discipline_skip(
+                        i,
+                        total_cursos,
+                        disciplina_title,
+                        reason="Limite do Plano Free atingido (1 disciplina já baixada)",
+                    )
+                continue
 
         # 1. Pulo instantâneo se a disciplina já está concluída no histórico
         if not force and state_mgr.is_discipline_completed(disciplina_title, check_videos=download_videos):
@@ -833,7 +874,16 @@ def process_courses(
             state_mgr.mark_discipline_completed(
                 disciplina_title, len(lessons), videos_completed=download_videos
             )
+            license_mgr.record_free_discipline_completed(disciplina_title)
+            disciplines_completed_in_run += 1
             ui.log_discipline_completed(i, total_cursos, disciplina_title, len(lessons))
+
+            if not is_pro and total_cursos > 1:
+                ui.log_info(
+                    f"★ Demonstração concluída! Você baixou '{disciplina_title}'. "
+                    f"Para desbloquear as outras {total_cursos - 1} disciplinas deste pacote, "
+                    f"adquira a Licença Pro em https://corujasync.com."
+                )
 
 
 # ---------------------------------------------------------------------------
