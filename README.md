@@ -22,7 +22,7 @@ Acesse em: [http://localhost:8000](http://localhost:8000)
 
 ## ⚙️ Como Personalizar os Links de Checkout e Suporte
 
-No final do arquivo [`landing/index.html`](file:///home/angolaw/development/AutoDownloadEstrategiaConcurso/landing/index.html), você encontra o objeto de configuração centralizado `APP_CONFIG`. Basta editar os links com os seus endereços reais:
+No final do arquivo [`index.html`](index.html), você encontra o objeto de configuração centralizado `APP_CONFIG`. Basta editar os links com os seus endereços reais:
 
 ```javascript
 const APP_CONFIG = {
@@ -30,7 +30,7 @@ const APP_CONFIG = {
   version: "2.0.0 Pro",
   
   // Link do instalador gratuito (GitHub Releases)
-  downloadUrl: "https://github.com/DemiurgoGM/AutoDownloadEstrategiaConcurso/releases/latest",
+  downloadUrl: "https://github.com/corujasync/corujasync/releases/latest",
   
   // Links de Checkout das Plataformas de Pagamento (Kiwify / Hotmart / Cakto)
   checkoutEdital: "https://kiwify.com.br/seu-link-edital",
