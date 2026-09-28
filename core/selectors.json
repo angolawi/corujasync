@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "updated_at": "2026-09-28T09:40:00Z",
+  "description": "Mapa de seletores resilientes com fallback para AutoConcursoDownloader",
+  "selectors": {
+    "popup_getsitecontrol": [
+      {"by": "id", "value": "getsitecontrol-44266"},
+      {"by": "css", "value": "div[id^='getsitecontrol']"}
+    ],
+    "login_email": [
+      {"by": "css", "value": "input[type='email'], input[name='email']"},
+      {"by": "css", "value": "input[name='username']"},
+      {"by": "xpath", "value": "//input[@type='email' or @name='email']"}
+    ],
+    "login_password": [
+      {"by": "css", "value": "input[type='password']"},
+      {"by": "xpath", "value": "//input[@type='password']"}
+    ],
+    "login_submit": [
+      {"by": "css", "value": "button[type='submit'], input[type='submit']"},
+      {"by": "xpath", "value": "//button[@type='submit'] | //input[@type='submit']"}
+    ],
+    "my_courses_wait": [
+      {"by": "css", "value": "section[id^='card'] a[href*='/app/dashboard/cursos/']"},
+      {"by": "css", "value": "section[id^='card']"},
+      {"by": "xpath", "value": "//section[starts-with(@id, 'card')]"}
+    ],
+    "my_courses_cards": [
+      {"by": "css", "value": "section[id^='card']"},
+      {"by": "css", "value": "div[class*='CourseCard']"},
+      {"by": "xpath", "value": "//section[starts-with(@id, 'card')]"}
+    ],
+    "my_courses_card_link": [
+      {"by": "css", "value": "a[href*='/app/dashboard/cursos/']"},
+      {"by": "xpath", "value": ".//a[contains(@href, '/app/dashboard/cursos/') or contains(@href, '/cursos/')]"}
+    ],
+    "my_courses_card_title": [
+      {"by": "css", "value": "h1"},
+      {"by": "css", "value": "h2, h3, div[class*='title']"},
+      {"by": "xpath", "value": ".//h1 | .//h2 | .//div[contains(@class, 'title')]"}
+    ],
+    "package_wait": [
+      {"by": "css", "value": "div.containerCursos"},
+      {"by": "css", "value": "div[class*='containerCursos']"},
+      {"by": "xpath", "value": "//div[contains(@class, 'containerCursos')]"}
+    ],
+    "package_title": [
+      {"by": "css", "value": "h2.SectionTitle"},
+      {"by": "css", "value": "h1.SectionTitle, h2, h1"},
+      {"by": "xpath", "value": "//h2[contains(@class, 'SectionTitle')] | //h1"}
+    ],
+    "package_discipline_links": [
+      {"by": "css", "value": "div.containerCursos a[href*='/cursos/']"},
+      {"by": "xpath", "value": "//div[contains(@class, 'containerCursos')]//a[contains(@href, '/cursos/')]"},
+      {"by": "css", "value": "a[href*='/cursos/']"}
+    ],
+    "package_discipline_title": [
+      {"by": "css", "value": "div.boxCurso p"},
+      {"by": "css", "value": "p"},
+      {"by": "xpath", "value": ".//div[contains(@class, 'boxCurso')]//p | .//p"}
+    ],
+    "single_course_title": [
+      {"by": "css", "value": "div.CourseInfo-content-title, h1.ScreenHeader-title, h1"},
+      {"by": "xpath", "value": "//*[contains(@class, 'CourseInfo-content-title') or contains(@class, 'ScreenHeader-title')] | //h1"}
+    ],
+    "lessons_wait": [
+      {"by": "css", "value": "div.LessonList-item"},
+      {"by": "css", "value": "div[class*='LessonList-item'], div[class*='LessonItem']"},
+      {"by": "xpath", "value": "//div[contains(@class, 'LessonList-item') or contains(@class, 'LessonItem')]"}
+    ],
+    "lessons_items": [
+      {"by": "css", "value": "div.LessonList-item"},
+      {"by": "css", "value": "div[class*='LessonList-item'], div[class*='LessonItem']"},
+      {"by": "xpath", "value": "//div[contains(@class, 'LessonList-item')]"}
+    ],
+    "lesson_item_link": [
+      {"by": "css", "value": "a.Collapse-header"},
+      {"by": "xpath", "value": ".//a[contains(@class, 'Collapse-header') or contains(@href, '/aulas/')]"},
+      {"by": "css", "value": "a"}
+    ],
+    "lesson_item_title": [
+      {"by": "css", "value": "h2.SectionTitle"},
+      {"by": "xpath", "value": ".//h2[contains(@class, 'SectionTitle')] | .//h2 | .//h3"},
+      {"by": "css", "value": "h2, h3"}
+    ],
+    "lesson_item_subtitle": [
+      {"by": "css", "value": "div.LessonCollapseHeader-title p"},
+      {"by": "xpath", "value": ".//div[contains(@class, 'LessonCollapseHeader-title')]//p | .//p[contains(@class, 'subtitle')]"},
+      {"by": "css", "value": "p"}
+    ],
+    "lesson_page_wait": [
+      {"by": "css", "value": "div.Lesson-contentTop, div.LessonButtonList, div.LessonList, a.LessonButton"},
+      {"by": "xpath", "value": "//*[contains(@class, 'Lesson-contentTop') or contains(@class, 'LessonButtonList') or contains(@class, 'LessonButton')]"}
+    ],
+    "lesson_pdf_links": [
+      {"by": "css", "value": "a.LessonButton"},
+      {"by": "xpath", "value": "//a[contains(@class, 'LessonButton') or contains(@href, 'api.estrategiaconcursos.com.br')]"},
+      {"by": "css", "value": "a[href*='api.estrategiaconcursos.com.br']"}
+    ],
+    "lesson_pdf_version_sub": [
+      {"by": "css", "value": "span.LessonButton-text > span"},
+      {"by": "xpath", "value": ".//span[contains(@class, 'LessonButton-text')]/*"}
+    ],
+    "lesson_pdf_version_full": [
+      {"by": "css", "value": "span.LessonButton-text"},
+      {"by": "xpath", "value": ".//span[contains(@class, 'LessonButton-text')]"}
+    ],
+    "video_playlist_items": [
+      {"by": "css", "value": "div.ListVideos-items-video a.VideoItem"},
+      {"by": "css", "value": "a.VideoItem"},
+      {"by": "css", "value": "div.ListVideos a[href*='/videos/']"},
+      {"by": "css", "value": "a[href*='/videos/']"},
+      {"by": "xpath", "value": "//a[contains(@class, 'VideoItem') or contains(@href, '/videos/')]"}
+    ],
+    "video_item_title": [
+      {"by": "css", "value": "span.VideoItem-info-title, div.VideoItem-info, p"},
+      {"by": "xpath", "value": ".//*[contains(@class, 'VideoItem-info-title') or contains(@class, 'VideoItem-info')] | .//p"}
+    ],
+    "video_page_wait": [
+      {"by": "css", "value": "div.Video, div.VideoPlayer, a.LessonButton, div.Collapse-header"},
+      {"by": "xpath", "value": "//*[contains(@class, 'Video') or contains(@class, 'VideoPlayer') or contains(@class, 'LessonButton')]"}
+    ],
+    "video_download_options_header": [
+      {"by": "xpath", "value": "//*[contains(@class, 'Collapse-header')]//*[contains(text(), 'Opções de download')]"},
+      {"by": "xpath", "value": "//*[contains(text(), 'Opções de download')]"}
+    ],
+    "video_pdf_button_template": [
+      {"by": "xpath", "value": "//a[contains(@class, 'LessonButton') and .//span[contains(text(), '{text}')]]"},
+      {"by": "xpath", "value": "//a[contains(@class, 'LessonButton') and contains(., '{text}')]"}
+    ],
+    "video_quality_link_template": [
+      {"by": "xpath", "value": "//a[contains(text(), '{quality}')] | //a[contains(@href, '{quality}')]"}
+    ]
+  }
+}

@@ -23,6 +23,8 @@ from core.events import (
 from core.downloader import sanitize_filename, download_file
 from core.state_manager import DownloadStateManager
 from core.crawler import handle_popups, get_lesson_data
+from core.selector_manager import get_selector_manager
+from core.api_extractor import extract_materials_from_page_source
 
 
 def download_video_materials(
@@ -39,22 +41,8 @@ def download_video_materials(
     Extrai a playlist de vídeos da aula, baixa os materiais de apoio de cada vídeo
     (Resumos, Slides, Mapas Mentais) e a videoaula (.mp4) na qualidade desejada.
     """
-    playlist_selectors = [
-        "div.ListVideos-items-video a.VideoItem",
-        "a.VideoItem",
-        "div.ListVideos a[href*='/videos/']",
-        "a[href*='/videos/']",
-    ]
-
-    playlist_items = []
-    for selector in playlist_selectors:
-        try:
-            items = driver.find_elements(By.CSS_SELECTOR, selector)
-            if items:
-                playlist_items = items
-                break
-        except (NoSuchElementException, WebDriverException):
-            pass
+    sm = get_selector_manager()
+    playlist_items = sm.find_elements(driver, "video_playlist_items")
 
     if not playlist_items:
         if observer:
@@ -71,12 +59,10 @@ def download_video_materials(
             seen_video_urls.add(video_href)
 
             video_title = ""
-            try:
-                title_elem = item.find_element(
-                    By.CSS_SELECTOR, "span.VideoItem-info-title, div.VideoItem-info, p"
-                )
+            title_elem = sm.find_element(item, "video_item_title")
+            if title_elem:
                 video_title = title_elem.text.strip()
-            except NoSuchElementException:
+            else:
                 video_title = item.text.strip()
 
             if not video_title:
@@ -134,11 +120,7 @@ def download_video_materials(
         driver.get(video_url)
 
         try:
-            WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, "div.Video, div.VideoPlayer, a.LessonButton, div.Collapse-header")
-                )
-            )
+            sm.wait_presence(driver, "video_page_wait", timeout=15)
             time.sleep(1)
         except TimeoutException:
             if observer:
@@ -161,31 +143,29 @@ def download_video_materials(
             if cancel_flag and cancel_flag():
                 break
             try:
-                pdf_link_elem = driver.find_element(
-                    By.XPATH,
-                    f"//a[contains(@class, 'LessonButton') and .//span[contains(text(), '{pdf_button_text}')]]",
-                )
-                pdf_url = pdf_link_elem.get_attribute("href")
-                if pdf_url and "api.estrategiaconcursos.com.br" in pdf_url:
-                    support_filename = f"{sanitized_lesson_title}_{sanitized_video_title}{filename_suffix}"
-                    support_path = os.path.join(lesson_download_path, support_filename)
-                    if os.path.exists(support_path) and os.path.getsize(support_path) > 1024:
-                        downloaded_files.append(support_filename)
-                    else:
-                        if observer:
-                            observer.on_status(
-                                StatusEvent(level="info", message=f"Encontrado {pdf_button_text} para o vídeo '{video_title}'.")
-                            )
-                        if download_file(
-                            url=pdf_url,
-                            file_path=support_path,
-                            session_cookies=selenium_cookies,
-                            current_page_url=driver.current_url,
-                            http_session=http_session,
-                            observer=observer,
-                            cancel_flag=cancel_flag,
-                        ):
+                pdf_link_elem = sm.find_element(driver, "video_pdf_button_template", text=pdf_button_text)
+                if pdf_link_elem:
+                    pdf_url = pdf_link_elem.get_attribute("href")
+                    if pdf_url and "api.estrategiaconcursos.com.br" in pdf_url:
+                        support_filename = f"{sanitized_lesson_title}_{sanitized_video_title}{filename_suffix}"
+                        support_path = os.path.join(lesson_download_path, support_filename)
+                        if os.path.exists(support_path) and os.path.getsize(support_path) > 1024:
                             downloaded_files.append(support_filename)
+                        else:
+                            if observer:
+                                observer.on_status(
+                                    StatusEvent(level="info", message=f"Encontrado {pdf_button_text} para o vídeo '{video_title}'.")
+                                )
+                            if download_file(
+                                url=pdf_url,
+                                file_path=support_path,
+                                session_cookies=selenium_cookies,
+                                current_page_url=driver.current_url,
+                                http_session=http_session,
+                                observer=observer,
+                                cancel_flag=cancel_flag,
+                            ):
+                                downloaded_files.append(support_filename)
             except NoSuchElementException:
                 pass
             except Exception as e:
@@ -195,20 +175,12 @@ def download_video_materials(
                     )
 
         # Expande opções de download do vídeo
-        try:
-            download_header = WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located(
-                    (By.XPATH, "//*[contains(@class, 'Collapse-header')]//*[contains(text(), 'Opções de download')]")
-                )
-            )
-            driver.execute_script("arguments[0].click();", download_header)
-            time.sleep(1)
-        except TimeoutException:
+        download_header = sm.find_element(driver, "video_download_options_header")
+        if download_header:
             try:
-                alt_header = driver.find_element(By.XPATH, "//*[contains(text(), 'Opções de download')]")
-                driver.execute_script("arguments[0].click();", alt_header)
+                driver.execute_script("arguments[0].click();", download_header)
                 time.sleep(1)
-            except NoSuchElementException:
+            except Exception:
                 pass
 
         # Baixa vídeo na resolução preferencial
@@ -220,26 +192,24 @@ def download_video_materials(
             video_path = os.path.join(lesson_download_path, video_filename)
 
             try:
-                video_link_elem = driver.find_element(
-                    By.XPATH,
-                    f"//a[contains(text(), '{quality}')] | //a[contains(@href, '{quality}')]",
-                )
-                video_url = video_link_elem.get_attribute("href")
-                if video_url:
-                    if observer:
-                        observer.on_status(StatusEvent(level="info", message=f"Baixando vídeo em {quality}..."))
-                    if download_file(
-                        url=video_url,
-                        file_path=video_path,
-                        session_cookies=selenium_cookies,
-                        current_page_url=driver.current_url,
-                        http_session=http_session,
-                        observer=observer,
-                        cancel_flag=cancel_flag,
-                    ):
-                        downloaded_files.append(video_filename)
-                        video_downloaded = True
-                        break
+                video_link_elem = sm.find_element(driver, "video_quality_link_template", quality=quality)
+                if video_link_elem:
+                    video_url = video_link_elem.get_attribute("href")
+                    if video_url:
+                        if observer:
+                            observer.on_status(StatusEvent(level="info", message=f"Baixando vídeo em {quality}..."))
+                        if download_file(
+                            url=video_url,
+                            file_path=video_path,
+                            session_cookies=selenium_cookies,
+                            current_page_url=driver.current_url,
+                            http_session=http_session,
+                            observer=observer,
+                            cancel_flag=cancel_flag,
+                        ):
+                            downloaded_files.append(video_filename)
+                            video_downloaded = True
+                            break
             except NoSuchElementException:
                 continue
             except Exception as e:
@@ -279,12 +249,10 @@ def download_lesson_materials(
         observer.on_status(StatusEvent(level="info", message=f"Acessando aula no navegador: {lesson_title}"))
     driver.get(lesson_url)
 
+    sm = get_selector_manager()
+
     try:
-        WebDriverWait(driver, 25).until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, "div.Lesson-contentTop, div.LessonButtonList, div.LessonList")
-            )
-        )
+        sm.wait_presence(driver, "lesson_page_wait", timeout=25)
         time.sleep(1)
     except TimeoutException:
         if observer:
@@ -326,7 +294,7 @@ def download_lesson_materials(
     downloaded_files = []
 
     try:
-        pdf_links = driver.find_elements(By.CSS_SELECTOR, "a.LessonButton")
+        pdf_links = sm.find_elements(driver, "lesson_pdf_links")
         pdfs_encontrados = 0
 
         for pdf_link in pdf_links:
@@ -339,18 +307,17 @@ def download_lesson_materials(
 
             pdfs_encontrados += 1
             pdf_text_raw = "original"
-            try:
-                version_span = pdf_link.find_element(By.CSS_SELECTOR, "span.LessonButton-text > span")
+            version_span = sm.find_element(pdf_link, "lesson_pdf_version_sub")
+            if version_span:
                 pdf_text_raw = version_span.text.strip()
-            except NoSuchElementException:
-                try:
-                    full_text = pdf_link.find_element(By.CSS_SELECTOR, "span.LessonButton-text").text.strip()
+            else:
+                full_text_elem = sm.find_element(pdf_link, "lesson_pdf_version_full")
+                if full_text_elem:
+                    full_text = full_text_elem.text.strip()
                     if full_text:
                         pdf_text_raw = re.sub(
                             r"^baixar\s+livro\s+eletrônico\s*", "", full_text, flags=re.IGNORECASE
                         ).strip() or "original"
-                except NoSuchElementException:
-                    pass
 
             filename_suffix = "_" + sanitize_filename(pdf_text_raw) if pdf_text_raw else ""
             filename = f"{sanitized_lesson_title}_Livro_Eletronico{filename_suffix}.pdf"
@@ -379,8 +346,34 @@ def download_lesson_materials(
             else:
                 all_downloads_ok = False
 
-        if pdfs_encontrados == 0 and observer:
-            observer.on_status(StatusEvent(level="info", message="Nenhum PDF encontrado nesta aula."))
+        # Fallback de resiliência: se nenhum PDF foi achado via DOM, varre o código-fonte da página
+        if pdfs_encontrados == 0:
+            raw_materials = extract_materials_from_page_source(driver.page_source)
+            if raw_materials["pdfs"]:
+                if observer:
+                    observer.on_status(
+                        StatusEvent(
+                            level="info",
+                            message=f"Resiliência HTML: {len(raw_materials['pdfs'])} PDFs identificados via varredura direta.",
+                        )
+                    )
+                for p_idx, pdf_url in enumerate(raw_materials["pdfs"], start=1):
+                    filename = f"{sanitized_lesson_title}_Livro_Eletronico_{p_idx}.pdf"
+                    full_file_path = os.path.join(lesson_download_path, filename)
+                    if not os.path.exists(full_file_path):
+                        if download_file(
+                            url=pdf_url,
+                            file_path=full_file_path,
+                            session_cookies=selenium_cookies,
+                            current_page_url=driver.current_url,
+                            http_session=http_session,
+                            observer=observer,
+                            cancel_flag=cancel_flag,
+                        ):
+                            downloaded_files.append(filename)
+                            pdfs_encontrados += 1
+            elif observer:
+                observer.on_status(StatusEvent(level="info", message="Nenhum PDF encontrado nesta aula."))
 
         if download_videos:
             video_files = download_video_materials(

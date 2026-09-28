@@ -51,6 +51,8 @@ def main():
         "ui.gui.views",
         "--hidden-import",
         "ui.cli",
+        "--add-data",
+        f"{root_dir / 'core' / 'selectors.json'}{os.pathsep}core",
         str(root_dir / "main.py"),
     ]
 

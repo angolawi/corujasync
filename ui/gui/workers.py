@@ -23,6 +23,7 @@ from core.crawler import (
     URL_PREFIX_CURSOS,
 )
 from core.processor import process_courses
+from core.selector_manager import get_selector_manager
 from browser.driver_manager import create_driver
 
 
@@ -107,6 +108,12 @@ class DownloadWorker(threading.Thread):
         start_time = time.time()
         http_session = create_http_session()
 
+        # Atualização assíncrona OTA de seletores em background
+        try:
+            get_selector_manager().fetch_remote_async()
+        except Exception:
+            pass
+
         try:
             self.observer.on_status(
                 StatusEvent(level="info", message="Iniciando navegador para autenticação...")
@@ -183,12 +190,10 @@ class DownloadWorker(threading.Thread):
             from selenium.common.exceptions import NoSuchElementException
 
             folder_title = ""
-            try:
-                elem = self.driver.find_element(
-                    By.CSS_SELECTOR, "div.CourseInfo-content-title, h1.ScreenHeader-title, h1"
-                )
+            elem = get_selector_manager().find_element(self.driver, "single_course_title")
+            if elem:
                 folder_title = elem.text.strip()
-            except NoSuchElementException:
+            if not folder_title:
                 folder_title = f"Curso_{parsed_path.rstrip('/').split('/')[-2]}"
 
             courses = [{"title": folder_title, "url": curso_url}]

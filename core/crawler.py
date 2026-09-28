@@ -15,6 +15,8 @@ from selenium.common.exceptions import (
 
 from core.events import DownloadObserver, StatusEvent, VideoEvent
 from core.downloader import sanitize_filename, download_file
+from core.selector_manager import get_selector_manager
+from core.api_extractor import extract_lessons_from_state
 
 BASE_URL = "https://www.estrategiaconcursos.com.br"
 MY_COURSES_URL = urljoin(BASE_URL, "/app/dashboard/cursos")
@@ -45,16 +47,14 @@ def normalize_course_url(entrada: str) -> str:
 
 def handle_popups(driver, observer: Optional[DownloadObserver] = None) -> None:
     """Tenta fechar popups conhecidos que podem interceptar cliques."""
+    sm = get_selector_manager()
     try:
-        getsitecontrol_widget = WebDriverWait(driver, 2).until(
-            EC.presence_of_element_located((By.ID, "getsitecontrol-44266"))
-        )
-        if observer:
-            observer.on_status(StatusEvent(level="info", message="Widget 'getsitecontrol' detectado. Ocultando."))
-        driver.execute_script("arguments[0].style.display = 'none';", getsitecontrol_widget)
-        time.sleep(1)
-    except TimeoutException:
-        pass
+        popup_elem = sm.find_element(driver, "popup_getsitecontrol")
+        if popup_elem and popup_elem.is_displayed():
+            if observer:
+                observer.on_status(StatusEvent(level="info", message="Widget 'getsitecontrol' detectado. Ocultando."))
+            driver.execute_script("arguments[0].style.display = 'none';", popup_elem)
+            time.sleep(1)
     except Exception as e:
         if observer:
             observer.on_status(StatusEvent(level="warning", message=f"Erro ao lidar com popups: {e}"))
@@ -71,6 +71,7 @@ def login(
     Realiza o login automaticamente se credenciais forem fornecidas.
     Se falhar ou não houver credenciais, aguarda wait_time para login manual pelo usuário.
     """
+    sm = get_selector_manager()
     if observer:
         observer.on_status(StatusEvent(level="info", message="Navegando para a página de login..."))
     driver.get("https://perfil.estrategia.com/login")
@@ -82,18 +83,18 @@ def login(
         if observer:
             observer.on_status(StatusEvent(level="info", message="Tentando autenticação com credenciais salvas..."))
         try:
-            email_input = WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='email'], input[name='email']"))
-            )
+            email_input = sm.wait_presence(driver, "login_email", timeout=15)
             email_input.clear()
             email_input.send_keys(email)
 
-            senha_input = driver.find_element(By.CSS_SELECTOR, "input[type='password']")
-            senha_input.clear()
-            senha_input.send_keys(senha)
+            senha_input = sm.find_element(driver, "login_password")
+            if senha_input:
+                senha_input.clear()
+                senha_input.send_keys(senha)
 
-            submit_btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit'], input[type='submit']")
-            submit_btn.click()
+            submit_btn = sm.find_element(driver, "login_submit")
+            if submit_btn:
+                submit_btn.click()
 
             time.sleep(6)
 
@@ -126,16 +127,13 @@ def login(
 
 def get_course_data(driver, observer: Optional[DownloadObserver] = None) -> List[Dict[str, str]]:
     """Navega até a página 'Minhas Matrículas' e extrai os links e títulos dos cursos."""
+    sm = get_selector_manager()
     if observer:
         observer.on_status(StatusEvent(level="info", message="Navegando para 'Meus Cursos'..."))
     driver.get(MY_COURSES_URL)
 
     try:
-        WebDriverWait(driver, 30).until(
-            EC.presence_of_all_elements_located(
-                (By.CSS_SELECTOR, "section[id^='card'] a[href*='/app/dashboard/cursos/']")
-            )
-        )
+        sm.wait_presence(driver, "my_courses_wait", timeout=30)
         time.sleep(2)
     except TimeoutException:
         if observer:
@@ -147,12 +145,15 @@ def get_course_data(driver, observer: Optional[DownloadObserver] = None) -> List
             )
         return []
 
-    course_elements = driver.find_elements(By.CSS_SELECTOR, "section[id^='card']")
+    course_elements = sm.find_elements(driver, "my_courses_cards")
     courses = []
     for course_elem in course_elements:
         try:
-            link_elem = course_elem.find_element(By.CSS_SELECTOR, "a[href*='/app/dashboard/cursos/']")
-            title_elem = course_elem.find_element(By.CSS_SELECTOR, "h1")
+            link_elem = sm.find_element(course_elem, "my_courses_card_link")
+            title_elem = sm.find_element(course_elem, "my_courses_card_title")
+            if not link_elem or not title_elem:
+                continue
+
             course_href = link_elem.get_attribute("href")
             course_title = title_elem.text.strip()
             if course_href and course_title:
@@ -173,14 +174,13 @@ def get_courses_from_pacote(
     observer: Optional[DownloadObserver] = None,
 ) -> Tuple[List[Dict[str, str]], str]:
     """Navega até a página de um pacote e retorna a lista de disciplinas contidas nele."""
+    sm = get_selector_manager()
     if observer:
         observer.on_status(StatusEvent(level="info", message=f"Acessando pacote: {pacote_url}"))
     driver.get(pacote_url)
 
     try:
-        WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.containerCursos"))
-        )
+        sm.wait_presence(driver, "package_wait", timeout=30)
         time.sleep(2)
     except TimeoutException:
         if observer:
@@ -194,14 +194,16 @@ def get_courses_from_pacote(
 
     pacote_title = ""
     try:
-        titulo_elem = driver.find_element(By.CSS_SELECTOR, "h2.SectionTitle")
-        pacote_title = titulo_elem.text.strip()
+        titulo_elem = sm.find_element(driver, "package_title")
+        if titulo_elem:
+            pacote_title = titulo_elem.text.strip()
     except NoSuchElementException:
+        pass
+
+    if not pacote_title:
         pacote_title = f"Pacote_{pacote_url.rstrip('/').split('/')[-1]}"
 
-    discipline_links = driver.find_elements(
-        By.CSS_SELECTOR, "div.containerCursos a[href*='/cursos/']"
-    )
+    discipline_links = sm.find_elements(driver, "package_discipline_links")
 
     courses = []
     seen_hrefs = set()
@@ -216,10 +218,10 @@ def get_courses_from_pacote(
                 href = urljoin(BASE_URL, href)
 
             title = ""
-            try:
-                p_elem = link_elem.find_element(By.CSS_SELECTOR, "div.boxCurso p")
+            p_elem = sm.find_element(link_elem, "package_discipline_title")
+            if p_elem:
                 title = p_elem.text.strip()
-            except NoSuchElementException:
+            else:
                 title = link_elem.text.strip()
 
             if not title:
@@ -247,22 +249,37 @@ def get_lesson_data(
         observer.on_status(StatusEvent(level="info", message=f"Carregando aulas de: {course_url}"))
     driver.get(course_url)
 
+    # Camada 1: Interceptação do estado/API interna (Bypass total de CSS)
     try:
-        WebDriverWait(driver, 30).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.LessonList-item"))
-        )
+        state_lessons = extract_lessons_from_state(driver, course_url)
+        if state_lessons and len(state_lessons) > 0:
+            if observer:
+                observer.on_status(
+                    StatusEvent(
+                        level="info",
+                        message=f"Interceptação de dados: {len(state_lessons)} aulas extraídas diretamente da API/Estado.",
+                    )
+                )
+            return state_lessons
+    except Exception:
+        pass
+
+    # Camada 2: Extração via DOM com Seletores OTA e Fallbacks em Cadeia
+    sm = get_selector_manager()
+    try:
+        sm.wait_presence(driver, "lessons_wait", timeout=30)
         time.sleep(2)
     except TimeoutException:
         if observer:
             observer.on_status(StatusEvent(level="warning", message="Tempo esgotado ao carregar lista de aulas."))
         return []
 
-    lesson_elements = driver.find_elements(By.CSS_SELECTOR, "div.LessonList-item")
+    lesson_elements = sm.find_elements(driver, "lessons_items")
     lessons = []
     for lesson_elem in lesson_elements:
         try:
-            link_elem = lesson_elem.find_element(By.CSS_SELECTOR, "a.Collapse-header")
-            lesson_href = link_elem.get_attribute("href")
+            link_elem = sm.find_element(lesson_elem, "lesson_item_link")
+            lesson_href = link_elem.get_attribute("href") if link_elem else ""
 
             if not lesson_href or lesson_href.endswith("/aulas"):
                 item_id = lesson_elem.get_attribute("id") or ""
@@ -275,17 +292,13 @@ def get_lesson_data(
             if lesson_href.startswith("/"):
                 lesson_href = urljoin(BASE_URL, lesson_href)
 
-            title_h2_elem = lesson_elem.find_element(By.CSS_SELECTOR, "h2.SectionTitle")
-            lesson_title = title_h2_elem.text.strip()
+            title_h2_elem = sm.find_element(lesson_elem, "lesson_item_title")
+            lesson_title = title_h2_elem.text.strip() if title_h2_elem else ""
 
             lesson_subtitle = ""
-            try:
-                subtitle_elem = lesson_elem.find_element(
-                    By.CSS_SELECTOR, "div.LessonCollapseHeader-title p"
-                )
+            subtitle_elem = sm.find_element(lesson_elem, "lesson_item_subtitle")
+            if subtitle_elem:
                 lesson_subtitle = subtitle_elem.text.strip()
-            except NoSuchElementException:
-                pass
 
             if lesson_title:
                 lessons.append(
