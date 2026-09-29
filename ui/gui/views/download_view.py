@@ -1,7 +1,9 @@
 import os
-from typing import Callable, Optional, Dict, Any
-from tkinter import filedialog, messagebox
+from typing import Callable, Optional, Dict, Any, Union
+from tkinter import filedialog
 import customtkinter as ctk
+
+from ui.gui.dialogs import show_info, show_success, show_error, show_warning, ask_confirm
 
 from ui.gui.theme import (
     THEME_COLORS,
@@ -226,18 +228,31 @@ class DownloadView(ctk.CTkScrollableFrame):
         )
         self.btn_diag.pack(side="right")
 
+        self.btn_copy_log = ctk.CTkButton(
+            btn_bar,
+            text="📋 Copiar Logs",
+            fg_color="transparent",
+            hover_color=("#E5E7EB", "#252836"),
+            text_color=THEME_COLORS["text_secondary"],
+            font=get_font(11, "bold"),
+            height=38,
+            width=110,
+            command=self.copy_logs,
+        )
+        self.btn_copy_log.pack(side="right", padx=4)
+
         self.btn_clear_log = ctk.CTkButton(
             btn_bar,
-            text="🗑 Limpar Logs",
+            text="🗑 Limpar",
             fg_color="transparent",
             hover_color=("#E5E7EB", "#252836"),
             text_color=THEME_COLORS["text_secondary"],
             font=get_font(11),
             height=38,
-            width=100,
+            width=80,
             command=self.clear_logs,
         )
-        self.btn_clear_log.pack(side="right", padx=6)
+        self.btn_clear_log.pack(side="right", padx=2)
 
         # Divisor
         sep_telemetry = ctk.CTkFrame(card_telemetry, height=1, fg_color=THEME_COLORS["border"])
@@ -326,15 +341,41 @@ class DownloadView(ctk.CTkScrollableFrame):
             try:
                 saved = DiagnosticsStore.get_instance().export_report_file(target)
                 self.append_log(f"\n[INFO] Relatório de diagnóstico exportado com sucesso: {saved}\n", tag="success")
-                messagebox.showinfo("Sucesso", f"Diagnóstico salvo em:\n\n{saved}\n\nEnvie este arquivo ao suporte para análise.")
+                show_success(
+                    self.winfo_toplevel(),
+                    "Diagnóstico Exportado",
+                    f"Relatório salvo com sucesso em:\n\n{saved}\n\nEnvie este arquivo ao suporte para análise rápida.",
+                )
             except Exception as e:
                 self.append_log(f"\n[ERRO] Falha ao exportar diagnóstico: {e}\n", tag="error")
-                messagebox.showerror("Erro", f"Não foi possível salvar o diagnóstico: {e}")
+                show_error(
+                    self.winfo_toplevel(),
+                    "Erro ao Exportar",
+                    f"Não foi possível salvar o arquivo de diagnóstico:\n{e}",
+                )
 
     def append_log(self, text: str, tag: str = "normal"):
         """Adiciona mensagem ao terminal de logs de forma thread-safe."""
         self.log_box.insert("end", text)
         self.log_box.see("end")
+
+    def copy_logs(self):
+        """Copia todo o histórico do terminal de logs para a área de transferência."""
+        content = self.log_box.get("1.0", "end").strip()
+        if content:
+            self.clipboard_clear()
+            self.clipboard_append(content)
+            show_success(
+                self.winfo_toplevel(),
+                "Logs Copiados",
+                "O histórico do terminal de eventos foi copiado com sucesso para a sua área de transferência!",
+            )
+        else:
+            show_info(
+                self.winfo_toplevel(),
+                "Terminal Vazio",
+                "Não há registros de eventos no terminal para copiar no momento.",
+            )
 
     def clear_logs(self):
         self.log_box.delete("1.0", "end")
@@ -343,7 +384,7 @@ class DownloadView(ctk.CTkScrollableFrame):
         self,
         current_file: Optional[str] = None,
         speed_mbps: Optional[float] = None,
-        eta_seconds: Optional[int] = None,
+        eta_seconds: Optional[Union[int, float]] = None,
         progress_ratio: Optional[float] = None,
     ):
         """Atualiza os indicadores do dashboard em tempo real."""
@@ -352,11 +393,12 @@ class DownloadView(ctk.CTkScrollableFrame):
         if speed_mbps is not None:
             self.lbl_speed.configure(text=f"{speed_mbps:.2f} MB/s")
         if eta_seconds is not None:
-            if eta_seconds < 60:
-                self.lbl_eta.configure(text=f"{eta_seconds}s")
+            total_secs = max(0, int(round(eta_seconds)))
+            if total_secs < 60:
+                self.lbl_eta.configure(text=f"{total_secs}s")
             else:
-                mins = eta_seconds // 60
-                secs = eta_seconds % 60
+                mins = total_secs // 60
+                secs = total_secs % 60
                 self.lbl_eta.configure(text=f"{mins}m {secs:02d}s")
         if progress_ratio is not None:
             clamped = max(0.0, min(1.0, progress_ratio))

@@ -48,6 +48,8 @@ def main():
         "--hidden-import",
         "ui.gui",
         "--hidden-import",
+        "ui.gui.dialogs",
+        "--hidden-import",
         "ui.gui.views",
         "--hidden-import",
         "ui.cli",

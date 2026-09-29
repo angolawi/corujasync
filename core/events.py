@@ -11,6 +11,21 @@ class ProgressEvent:
     eta_seconds: Optional[float]
     percent: float
 
+    @property
+    def speed_mbps(self) -> float:
+        """Taxa de transferência em Megabytes por segundo (MB/s)."""
+        return (self.speed_bytes_sec or 0.0) / (1024 * 1024)
+
+    @property
+    def ratio(self) -> float:
+        """Proporção de conclusão normalizada entre 0.0 e 1.0."""
+        if self.total_bytes and self.total_bytes > 0:
+            return max(0.0, min(1.0, self.downloaded_bytes / self.total_bytes))
+        if self.percent:
+            return max(0.0, min(1.0, self.percent / 100.0))
+        return 0.0
+
+
 
 @dataclass
 class StatusEvent:

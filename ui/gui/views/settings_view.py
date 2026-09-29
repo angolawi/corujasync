@@ -1,6 +1,7 @@
-from typing import Dict, Any, Callable
-from tkinter import messagebox
+from typing import Dict, Any, Callable, Optional
 import customtkinter as ctk
+
+from ui.gui.dialogs import show_success
 
 from ui.gui.theme import (
     THEME_COLORS,
@@ -154,4 +155,8 @@ class SettingsView(ctk.CTkFrame):
         save_config(self.config)
         if self.on_saved:
             self.on_saved()
-        messagebox.showinfo("Sucesso", "Preferências salvas com sucesso!")
+        show_success(
+            self.winfo_toplevel(),
+            "Preferências Salvas",
+            "Suas configurações e preferências foram atualizadas e salvas com sucesso no arquivo local!",
+        )

@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import customtkinter as ctk
 
 from ui.gui.theme import (
@@ -35,7 +35,7 @@ class SearchView(ctk.CTkFrame):
 
         lbl_title = ctk.CTkLabel(
             search_card,
-            text="🔍 Busca Global Textual em PDFs",
+            text="🔍 Busca Global em Aulas, Assuntos e Livros",
             font=get_font(15, "bold"),
             text_color=THEME_COLORS["text_primary"],
             anchor="w",
@@ -44,7 +44,7 @@ class SearchView(ctk.CTkFrame):
 
         lbl_desc = ctk.CTkLabel(
             search_card,
-            text="Pesquise por artigos de leis, jurisprudência ou conceitos em todos os livros eletrônicos já baixados no disco.",
+            text="Pesquise por tópicos do edital, conceitos jurídicos, legislações ou assuntos abordados em todas as aulas e livros eletrônicos.",
             font=get_font(11),
             text_color=THEME_COLORS["text_muted"],
             anchor="w",
@@ -57,12 +57,27 @@ class SearchView(ctk.CTkFrame):
 
         self.entry_query = ctk.CTkEntry(
             row_search,
-            placeholder_text="Digite o termo ou frase (ex: Legalidade e Moralidade, Art. 5, Licitação)...",
+            placeholder_text="Digite o assunto ou termo (ex: Princípios Fundamentais, Poder Constituinte, Licitação)...",
             font=get_font(13),
             height=40,
         )
         self.entry_query.pack(side="left", fill="x", expand=True, padx=(0, 8))
         self.entry_query.bind("<Return>", lambda e: self._perform_search())
+
+        # Seletor de Concurso (Entidade de Topo)
+        concursos_list = ["Todos os Concursos"] + self.indexer.get_concursos()
+        self.combo_concurso = ctk.CTkOptionMenu(
+            row_search,
+            values=concursos_list,
+            font=get_font(12),
+            height=40,
+            width=210,
+            fg_color=THEME_COLORS["slate"],
+            button_color=THEME_COLORS["slate_hover"],
+            button_hover_color=THEME_COLORS["slate_hover"],
+        )
+        self.combo_concurso.set("Todos os Concursos")
+        self.combo_concurso.pack(side="left", padx=(0, 8))
 
         btn_search = ctk.CTkButton(
             row_search,
@@ -71,7 +86,7 @@ class SearchView(ctk.CTkFrame):
             hover_color=THEME_COLORS["accent_primary_hover"],
             font=get_font(13, "bold"),
             height=40,
-            width=120,
+            width=110,
             command=self._perform_search,
         )
         btn_search.pack(side="left", padx=(0, 8))
@@ -83,16 +98,17 @@ class SearchView(ctk.CTkFrame):
             hover_color=THEME_COLORS["slate_hover"],
             font=get_font(12),
             height=40,
-            width=100,
+            width=95,
             command=self._reindex_library,
         )
         btn_reindex.pack(side="left")
 
         # Barra de Status do Índice
+        lessons_count = len(self.indexer.index_data.get("lessons", {}))
         docs_count = len(self.indexer.index_data.get("documents", {}))
         self.lbl_stats = ctk.CTkLabel(
             search_card,
-            text=f"📚 Biblioteca indexada: {docs_count} arquivos PDF prontos para busca instantânea.",
+            text=f"📚 Base de conhecimento: {lessons_count} aulas catalogadas ({docs_count} PDFs prontos para busca).",
             font=get_font(11, "bold"),
             text_color=THEME_COLORS["text_secondary"],
             anchor="w",
@@ -133,18 +149,22 @@ class SearchView(ctk.CTkFrame):
 
         # Auto-indexa se o índice estiver vazio
         download_dir = self.config.get("download_dir", get_default_download_dir())
-        if not self.indexer.index_data.get("documents"):
+        if not self.indexer.index_data.get("lessons") and not self.indexer.index_data.get("documents"):
             self.indexer.index_directory(download_dir)
 
-        results = self.indexer.search(query, max_results=40)
+        concurso_filter = self.combo_concurso.get() if hasattr(self, "combo_concurso") else None
+        results = self.indexer.search(query, concurso=concurso_filter, max_results=50)
         self._display_results(results, query)
 
     def _reindex_library(self):
         download_dir = self.config.get("download_dir", get_default_download_dir())
         new_count = self.indexer.index_directory(download_dir, force_reindex=True)
+        lessons_count = len(self.indexer.index_data.get("lessons", {}))
         docs_count = len(self.indexer.index_data.get("documents", {}))
+        if hasattr(self, "combo_concurso"):
+            self.combo_concurso.configure(values=["Todos os Concursos"] + self.indexer.get_concursos())
         self.lbl_stats.configure(
-            text=f"✓ Reindexação concluída! {docs_count} PDFs disponíveis no catálogo ({new_count} novos processados)."
+            text=f"✓ Reindexação concluída! {lessons_count} aulas e {docs_count} PDFs catalogados para busca instantânea."
         )
 
     def _display_results(self, results: List[Dict[str, Any]], query: str):
@@ -159,14 +179,29 @@ class SearchView(ctk.CTkFrame):
             card = create_card_frame(self.results_frame)
             card.pack(fill="x", pady=6)
 
-            # Cabeçalho do Card
+            # Cabeçalho do Card (Badges + Botões de Ação)
             head = ctk.CTkFrame(card, fg_color="transparent")
             head.pack(fill="x", padx=12, pady=(10, 4))
 
-            # Badges
+            # Badge do Concurso (Entidade de Topo)
+            raw_concurso = res.get("concurso", "Concurso").replace("_", " ")
+            concurso_label = raw_concurso if len(raw_concurso) <= 32 else raw_concurso[:30] + "..."
+            badge_concurso = ctk.CTkLabel(
+                head,
+                text=f"🏛️ {concurso_label}",
+                font=get_font(10, "bold"),
+                fg_color=("#FEF3C7", "#78350F"),
+                text_color=("#B45309", "#FDE68A"),
+                corner_radius=4,
+                padx=6,
+                pady=2,
+            )
+            badge_concurso.pack(side="left", padx=(0, 6))
+
+            # Badge da Disciplina / Curso
             badge_course = ctk.CTkLabel(
                 head,
-                text=res.get("course", "Curso"),
+                text=res.get("course", "Curso").replace("_", " "),
                 font=get_font(10, "bold"),
                 fg_color=("#DBEAFE", "#1E3A8A"),
                 text_color=("#1D4ED8", "#93C5FD"),
@@ -176,65 +211,91 @@ class SearchView(ctk.CTkFrame):
             )
             badge_course.pack(side="left", padx=(0, 6))
 
-            badge_page = ctk.CTkLabel(
+            # Badge da Origem (Assuntos da Aula vs Livro PDF)
+            is_subjects = res.get("source") == "subjects"
+            badge_source = ctk.CTkLabel(
                 head,
-                text=f"Página {res.get('page')}",
+                text="📋 Assuntos da Aula" if is_subjects else f"📄 PDF (Pág. {res.get('page', 1)})",
                 font=get_font(10, "bold"),
-                fg_color=("#E5E7EB", "#374151"),
-                text_color=THEME_COLORS["text_secondary"],
+                fg_color=("#DCFCE7", "#14532D") if is_subjects else ("#E5E7EB", "#374151"),
+                text_color=("#166534", "#86EFAC") if is_subjects else THEME_COLORS["text_secondary"],
                 corner_radius=4,
                 padx=6,
                 pady=2,
             )
-            badge_page.pack(side="left")
+            badge_source.pack(side="left")
 
-            btn_open = ctk.CTkButton(
-                head,
-                text="Abrir PDF ↗",
-                font=get_font(10, "bold"),
-                width=80,
-                height=24,
-                corner_radius=4,
-                fg_color=THEME_COLORS["slate"],
-                hover_color=THEME_COLORS["slate_hover"],
-                command=lambda path=res.get("filepath"): self._open_file(path),
-            )
-            btn_open.pack(side="right")
+            # Botões de Ação na Direita
+            btn_frame = ctk.CTkFrame(head, fg_color="transparent")
+            btn_frame.pack(side="right")
 
-            # Nome da Aula e Arquivo
+            filepath = res.get("filepath")
+            if filepath and filepath.lower().endswith(".pdf") and os.path.exists(filepath):
+                btn_open_pdf = ctk.CTkButton(
+                    btn_frame,
+                    text="📄 Abrir Livro (PDF)",
+                    font=get_font(10, "bold"),
+                    height=26,
+                    corner_radius=4,
+                    fg_color=THEME_COLORS["accent_primary"],
+                    hover_color=THEME_COLORS["accent_primary_hover"],
+                    command=lambda p=filepath: self._open_file(p),
+                )
+                btn_open_pdf.pack(side="left", padx=(0, 6))
+
+            lesson_path = res.get("lesson_path")
+            if lesson_path and os.path.exists(lesson_path):
+                btn_open_dir = ctk.CTkButton(
+                    btn_frame,
+                    text="📂 Abrir Pasta",
+                    font=get_font(10, "bold"),
+                    height=26,
+                    corner_radius=4,
+                    fg_color=THEME_COLORS["slate"],
+                    hover_color=THEME_COLORS["slate_hover"],
+                    command=lambda p=lesson_path: self._open_file(p),
+                )
+                btn_open_dir.pack(side="left")
+
+            # Título da Aula e Arquivo
+            lesson_title = res.get("lesson", "Aula")
+            if not is_subjects and res.get("filename"):
+                lesson_title = f"{lesson_title}  •  {res.get('filename')}"
+
             lbl_file = ctk.CTkLabel(
                 card,
-                text=f"{res.get('lesson')}  •  {res.get('filename')}",
+                text=lesson_title,
                 font=get_font(12, "bold"),
                 text_color=THEME_COLORS["text_primary"],
                 anchor="w",
             )
             lbl_file.pack(fill="x", padx=12, pady=(2, 4))
 
-            # Trecho com contexto
+            # Caixa com o Snippet do Assunto / Trecho
             snippet_box = ctk.CTkFrame(card, fg_color=THEME_COLORS["input_bg"], corner_radius=6)
             snippet_box.pack(fill="x", padx=12, pady=(0, 10))
 
+            snippet_text = res.get("snippet", "").strip()
             lbl_snippet = ctk.CTkLabel(
                 snippet_box,
-                text=res.get("snippet", ""),
+                text=snippet_text,
                 font=get_font(11),
                 text_color=THEME_COLORS["text_secondary"],
-                wraplength=640,
+                wraplength=680,
                 justify="left",
                 anchor="w",
             )
             lbl_snippet.pack(fill="x", padx=8, pady=6)
 
-    def _open_file(self, filepath: Optional[str]):
-        if not filepath or not os.path.exists(filepath):
+    def _open_file(self, target_path: Optional[str]):
+        if not target_path or not os.path.exists(target_path):
             return
         try:
             if sys.platform == "win32":
-                os.startfile(filepath)
+                os.startfile(target_path)
             elif sys.platform == "darwin":
-                subprocess.Popen(["open", filepath])
+                subprocess.Popen(["open", target_path])
             else:
-                subprocess.Popen(["xdg-open", filepath])
+                subprocess.Popen(["xdg-open", target_path])
         except Exception:
             pass

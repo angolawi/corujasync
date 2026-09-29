@@ -1,6 +1,7 @@
 from typing import Dict, Any
-from tkinter import messagebox
 import customtkinter as ctk
+
+from ui.gui.dialogs import show_info, show_success, show_error
 
 from ui.gui.theme import (
     THEME_COLORS,
@@ -161,7 +162,11 @@ class LicenseView(ctk.CTkFrame):
         mid = self.entry_mid.get()
         self.clipboard_clear()
         self.clipboard_append(mid)
-        messagebox.showinfo("Copiado", f"Machine ID copiado para a área de transferência:\n\n{mid}")
+        show_success(
+            self.winfo_toplevel(),
+            "ID Copiado",
+            f"Machine ID copiado com sucesso para a sua área de transferência:\n\n{mid}",
+        )
 
     def _activate_key(self):
         key = self.entry_key.get().strip()
@@ -181,7 +186,15 @@ class LicenseView(ctk.CTkFrame):
             self.lbl_details.configure(
                 text=f"Cliente: {status.get('client')}  •  Validade: {status.get('expires_at')}\n{status.get('message')}"
             )
-            messagebox.showinfo("Sucesso", msg)
+            show_success(
+                self.winfo_toplevel(),
+                "Licença Ativada",
+                f"{msg}\n\nTodos os recursos Pro do CorujaSync foram liberados com sucesso!",
+            )
         else:
             self.lbl_act_feedback.configure(text=f"✗ {msg}", text_color="#EF4444")
-            messagebox.showerror("Erro de Ativação", msg)
+            show_error(
+                self.winfo_toplevel(),
+                "Falha na Ativação",
+                msg,
+            )

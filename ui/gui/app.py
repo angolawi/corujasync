@@ -20,11 +20,11 @@ if os.path.isdir(local_lib):
             os.environ["LD_LIBRARY_PATH"] = f"{local_lib}:{current_ld}"
 
 import customtkinter as ctk
-from tkinter import messagebox
 
 from core.config import load_config, save_config
 from legal.license_verifier import is_eula_accepted
 from ui.gui.theme import THEME_COLORS
+from ui.gui.dialogs import show_warning, ask_confirm
 from ui.gui.views.eula_dialog import EulaDialog
 from ui.gui.views.sidebar import SidebarNav
 from ui.gui.views.download_view import DownloadView
@@ -143,10 +143,19 @@ class CorujaSyncApp(ctk.CTk):
         dl_view: DownloadView = self.views["download"]
         params = dl_view.get_run_parameters()
 
+        if not params["download_dir"]:
+            show_warning(
+                self,
+                "Diretório Inválido",
+                "Por favor, selecione uma pasta de destino válida para salvar os downloads.",
+            )
+            return
+
         if params["mode"] == "single" and not params["curso_input"]:
-            messagebox.showwarning(
-                "Atenção",
-                "Por favor, informe a URL ou o ID numérico do curso/pacote que deseja baixar.",
+            show_warning(
+                self,
+                "Curso Não Informado",
+                "Por favor, informe a URL ou o ID numérico do curso ou pacote que deseja baixar.",
             )
             return
 
@@ -170,8 +179,18 @@ class CorujaSyncApp(ctk.CTk):
         self.worker.start()
 
     def _stop_download(self):
-        """Sinaliza parada ao worker ativo."""
+        """Sinaliza parada ao worker ativo após confirmação do usuário."""
         if self.worker and self.worker.is_alive():
+            confirmed = ask_confirm(
+                self,
+                "Interromper Download",
+                "Deseja realmente cancelar o download em andamento?\nOs arquivos e blocos já finalizados serão preservados.",
+                confirm_text="Sim, Interromper",
+                cancel_text="Continuar Baixando",
+            )
+            if not confirmed:
+                return
+
             self.worker.cancel()
             dl_view: DownloadView = self.views["download"]
             dl_view.append_log(
@@ -183,75 +202,95 @@ class CorujaSyncApp(ctk.CTk):
     def _poll_event_queue(self):
         """Consome eventos da fila thread-safe gerados pelo worker."""
         try:
+            if not self.winfo_exists():
+                return
             dl_view: DownloadView = self.views.get("download")
             while True:
-                event_type, data = self.event_queue.get_nowait()
+                try:
+                    event_type, data = self.event_queue.get_nowait()
+                except queue.Empty:
+                    break
 
-                if event_type == "banner":
-                    banner_msg = f"\n=== {data.get('mode')} ===\nDestino: {data.get('dir')}\n"
-                    if data.get("name"):
-                        banner_msg += f"Alvo: {data.get('name')}\n"
-                    dl_view.append_log(banner_msg)
+                try:
+                    if event_type == "banner":
+                        banner_msg = f"\n=== {data.get('mode')} ===\nDestino: {data.get('dir')}\n"
+                        if data.get("name"):
+                            banner_msg += f"Alvo: {data.get('name')}\n"
+                        dl_view.append_log(banner_msg)
 
-                elif event_type == "status":
-                    prefix = {
-                        "info": "  [INFO] ",
-                        "warning": "  [AVISO] ",
-                        "error": "  [ERRO] ",
-                        "success": "  [✓] ",
-                    }.get(data.level, "  ")
-                    dl_view.append_log(f"{prefix}{data.message}\n", tag=data.level)
+                    elif event_type == "status":
+                        prefix = {
+                            "info": "  [INFO] ",
+                            "warning": "  [AVISO] ",
+                            "error": "  [ERRO] ",
+                            "success": "  [✓] ",
+                        }.get(data.level, "  ")
+                        dl_view.append_log(f"{prefix}{data.message}\n", tag=data.level)
 
-                elif event_type == "discipline":
-                    if data.status == "started":
-                        dl_view.append_log(f"\n━━━ [{data.index}/{data.total}] Disciplina: {data.title}\n")
-                    elif data.status == "skipped":
-                        dl_view.append_log(f"  ↷ [{data.index}/{data.total}] {data.title} (Já concluída)\n")
-                    elif data.status == "completed":
-                        dl_view.append_log(f"✓ Concluída disciplina: {data.title} ({data.lesson_count} aulas)\n", tag="success")
+                    elif event_type == "discipline":
+                        if data.status == "started":
+                            dl_view.append_log(f"\n━━━ [{data.index}/{data.total}] Disciplina: {data.title}\n")
+                        elif data.status == "skipped":
+                            dl_view.append_log(f"  ↷ [{data.index}/{data.total}] {data.title} (Já concluída)\n")
+                        elif data.status == "completed":
+                            dl_view.append_log(f"✓ Concluída disciplina: {data.title} ({data.lesson_count} aulas)\n", tag="success")
 
-                elif event_type == "lesson":
-                    if data.status == "started":
-                        dl_view.append_log(f"  → [{data.index}/{data.total}] {data.title}\n")
-                    elif data.status == "skipped":
-                        dl_view.append_log(f"  ↷ [{data.index}/{data.total}] {data.title} (já baixada)\n")
+                    elif event_type == "lesson":
+                        if data.status == "started":
+                            dl_view.append_log(f"  → [{data.index}/{data.total}] {data.title}\n")
+                        elif data.status == "skipped":
+                            dl_view.append_log(f"  ↷ [{data.index}/{data.total}] {data.title} (já baixada)\n")
 
-                elif event_type == "video_playlist":
-                    dl_view.append_log(f"    🎬 Playlist identificada: {data} blocos de vídeo disponíveis.\n")
+                    elif event_type == "video_playlist":
+                        dl_view.append_log(f"    🎬 Playlist identificada: {data} blocos de vídeo disponíveis.\n")
 
-                elif event_type == "video":
-                    if data.status == "started":
-                        dl_view.append_log(f"    → [{data.index}/{data.total}] {data.title}\n")
-                    elif data.status == "skipped":
-                        dl_view.append_log(f"    ↷ [{data.index}/{data.total}] {data.title} (vídeo já baixado)\n")
+                    elif event_type == "video":
+                        if data.status == "started":
+                            dl_view.append_log(f"    → [{data.index}/{data.total}] {data.title}\n")
+                        elif data.status == "skipped":
+                            dl_view.append_log(f"    ↷ [{data.index}/{data.total}] {data.title} (vídeo já baixado)\n")
 
-                elif event_type == "progress":
-                    dl_view.update_telemetry(
-                        current_file=data.filename,
-                        speed_mbps=data.speed_mbps,
-                        eta_seconds=data.eta_seconds,
-                        progress_ratio=data.ratio,
-                    )
+                    elif event_type == "progress":
+                        speed_mb = getattr(data, "speed_mbps", None)
+                        if speed_mb is None and hasattr(data, "speed_bytes_sec"):
+                            speed_mb = (data.speed_bytes_sec or 0.0) / (1024 * 1024)
 
-                elif event_type == "finished":
-                    dl_view.set_running_state(False)
-                    elapsed = data.get("elapsed_seconds", 0)
-                    if data.get("success"):
-                        dl_view.append_log(
-                            f"\n=======================================================\n"
-                            f"✓ DOWNLOADS CONCLUÍDOS COM SUCESSO! (Tempo: {elapsed:.1f}s)\n"
-                            f"=======================================================\n",
-                            tag="success",
+                        prog_ratio = getattr(data, "ratio", None)
+                        if prog_ratio is None:
+                            if getattr(data, "percent", None) is not None:
+                                prog_ratio = data.percent / 100.0
+                            elif getattr(data, "total_bytes", None) and data.total_bytes > 0:
+                                prog_ratio = data.downloaded_bytes / data.total_bytes
+
+                        dl_view.update_telemetry(
+                            current_file=getattr(data, "filename", None),
+                            speed_mbps=speed_mb,
+                            eta_seconds=getattr(data, "eta_seconds", None),
+                            progress_ratio=prog_ratio,
                         )
-                        self.sidebar.set_status("Concluído", state="ready")
-                    else:
-                        dl_view.append_log(f"\n[ERRO FINAL] Falha na execução: {data.get('error')}\n", tag="error")
-                        self.sidebar.set_status("Erro na Execução", state="error")
 
-        except queue.Empty:
-            pass
-
-        self._after_poll_id = self.after(100, self._poll_event_queue)
+                    elif event_type == "finished":
+                        dl_view.set_running_state(False)
+                        elapsed = data.get("elapsed_seconds", 0)
+                        if data.get("success"):
+                            dl_view.append_log(
+                                f"\n=======================================================\n"
+                                f"✓ DOWNLOADS CONCLUÍDOS COM SUCESSO! (Tempo: {elapsed:.1f}s)\n"
+                                f"=======================================================\n",
+                                tag="success",
+                            )
+                            self.sidebar.set_status("Concluído", state="ready")
+                        else:
+                            dl_view.append_log(f"\n[ERRO FINAL] Falha na execução: {data.get('error')}\n", tag="error")
+                            self.sidebar.set_status("Erro na Execução", state="error")
+                except Exception as event_err:
+                    print(f"[GUI Event Error] Falha ao processar evento '{event_type}': {event_err}")
+        finally:
+            try:
+                if self.winfo_exists():
+                    self._after_poll_id = self.after(100, self._poll_event_queue)
+            except Exception:
+                pass
 
     def destroy(self):
         """Limpa callbacks pendentes antes de fechar a janela."""

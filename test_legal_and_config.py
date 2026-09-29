@@ -76,6 +76,20 @@ class TestLegalAndConfig(unittest.TestCase):
         observer.on_progress(p_event)
         self.assertEqual(len(observer.progress_events), 1)
         self.assertEqual(observer.progress_events[0].percent, 50.0)
+        self.assertAlmostEqual(observer.progress_events[0].speed_mbps, 1024.0 / (1024 * 1024))
+        self.assertAlmostEqual(observer.progress_events[0].ratio, 0.5)
+
+        # Testa evento sem total_bytes
+        p_event_no_total = ProgressEvent(
+            filename="teste2.pdf",
+            downloaded_bytes=500,
+            total_bytes=None,
+            speed_bytes_sec=2048.0,
+            eta_seconds=None,
+            percent=25.0,
+        )
+        self.assertAlmostEqual(p_event_no_total.ratio, 0.25)
+        self.assertAlmostEqual(p_event_no_total.speed_mbps, 2048.0 / (1024 * 1024))
 
         s_event = StatusEvent(level="info", message="Teste")
         observer.on_status(s_event)

@@ -39,13 +39,22 @@ THEME_COLORS = {
     "tag_success": ("#047857", "#34D399"),
     "tag_warning": ("#B45309", "#FBBF24"),
     "tag_error": ("#B91C1C", "#F87171"),
+    # Badges e modais de diálogo
+    "dialog_bg": ("#FFFFFF", "#181A24"),
+    "badge_info": ("#DBEAFE", "#1E3A8A"),
+    "badge_success": ("#D1FAE5", "#064E3B"),
+    "badge_warning": ("#FEF3C7", "#78350F"),
+    "badge_error": ("#FEE2E2", "#7F1D1D"),
+    "badge_confirm": ("#EDE9FE", "#4C1D95"),
 }
 
 # Geometria e Estilização
 RADIUS_CARD = 10
 RADIUS_INPUT = 8
 RADIUS_BUTTON = 8
+RADIUS_DIALOG = 14
 BORDER_WIDTH_CARD = 1
+BORDER_WIDTH_DIALOG = 1
 
 
 def create_card_frame(parent, **kwargs) -> ctk.CTkFrame:
