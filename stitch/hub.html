@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CorujaSync Pro v2.0 - Intelligent Course Backup & Study Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            obsidian: '#0B0F17',
+            slateDark: '#111827',
+            panel: '#0F172A',
+            titlebar: '#0E1523',
+            brandIndigo: '#6366F1',
+            brandEmerald: '#10B981',
+            brandAmber: '#F59E0B',
+            surfaceBorder: 'rgba(255, 255, 255, 0.08)',
+          },
+          boxShadow: {
+            'glow-indigo': '0 0 25px -5px rgba(99, 102, 241, 0.35)',
+            'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.35)',
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.45)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    /* Subtle pulse animation for telemetry */
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.65; transform: scale(1.15); }
+    }
+    .pulse-beacon {
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+
+    /* Shimmer gradient for progress bar */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .shimmer-bar {
+      background: linear-gradient(90deg, #06b6d4, #10b981, #6366f1, #06b6d4);
+      background-size: 200% 100%;
+      animation: shimmer 3.5s infinite linear;
+    }
+  </style>
+</head>
+
+<body class="bg-[#050811] text-slate-100 flex items-center justify-center min-h-screen p-4 antialiased select-none font-sans overflow-hidden">
+
+  <!-- Desktop App Window Frame (1280x820 constrained & responsive) -->
+  <div class="w-[1280px] h-[820px] max-w-full max-h-[96vh] bg-obsidian rounded-2xl border border-surfaceBorder shadow-2xl flex flex-col overflow-hidden relative backdrop-blur-xl">
+
+    <!-- 1. Native Desktop Titlebar (Height: 44px) -->
+    <header class="h-[44px] bg-titlebar border-b border-surfaceBorder px-4 flex items-center justify-between shrink-0 z-20">
+      <!-- Left: macOS-style Traffic Lights -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center space-x-2 mr-3 group">
+          <button class="w-3 h-3 rounded-full bg-[#EF4444] border border-[#DC2626]/60 transition-transform hover:scale-110 flex items-center justify-center focus:outline-none">
+            <span class="opacity-0 group-hover:opacity-100 text-[8px] text-red-950 font-bold leading-none">×</span>
+          </button>
+          <button class="w-3 h-3 rounded-full bg-[#F59E0B] border border-[#D97706]/60 transition-transform hover:scale-110 flex items-center justify-center focus:outline-none">
+            <span class="opacity-0 group-hover:opacity-100 text-[8px] text-amber-950 font-bold leading-none">−</span>
+          </button>
+          <button class="w-3 h-3 rounded-full bg-[#10B981] border border-[#059669]/60 transition-transform hover:scale-110 flex items-center justify-center focus:outline-none">
+            <span class="opacity-0 group-hover:opacity-100 text-[8px] text-emerald-950 font-bold leading-none">+</span>
+          </button>
+        </div>
+
+        <div class="h-3.5 w-px bg-white/10 mx-1"></div>
+
+        <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/5 border border-white/5">
+          <i class="fa-solid fa-layer-group text-[10px] text-indigo-400"></i>
+          <span>Workspace: Concursos Fiscais</span>
+        </span>
+      </div>
+
+      <!-- Center: App Title & OTA Engine Badge -->
+      <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-1.5 font-semibold text-xs tracking-wide text-slate-200">
+          <span class="text-base">🦉</span>
+          <span>CorujaSync Pro</span>
+          <span class="text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded font-mono border border-indigo-500/20">v2.0</span>
+        </div>
+        <span class="text-slate-600">/</span>
+        <span class="flex items-center gap-1.5 text-[11px] font-mono text-slate-400 bg-white/[0.03] px-2.5 py-0.5 rounded-full border border-white/5">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+          <span>OTA Engine v2.0.4 - Seletores Ativos</span>
+        </span>
+      </div>
+
+      <!-- Right: System Status & Utility Quick Toggles -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-medium text-emerald-300">
+          <span class="relative flex h-2 w-2">
+            <span class="pulse-beacon absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span>Conectado &amp; Pronto</span>
+        </div>
+
+        <div class="flex items-center gap-1 bg-white/[0.04] p-0.5 rounded-lg border border-white/10">
+          <button title="Modo Escuro (Ativo)" class="w-6 h-6 flex items-center justify-center rounded-md bg-white/10 text-amber-300 text-xs shadow-sm">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          <button title="Alternar Modo Claro" class="w-6 h-6 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-200 text-xs transition-colors">
+            <i class="fa-solid fa-sun"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Body Container: Sidebar + Content -->
+    <div class="flex-1 flex overflow-hidden">
+      
+      <!-- 2. Collapsible Left Sidebar (Width: 230px) -->
+      <aside class="w-[230px] bg-panel border-r border-surfaceBorder flex flex-col justify-between shrink-0 select-none">
+        <!-- Top section: Logo brand & Nav items -->
+        <div class="p-3.5 space-y-4">
+          <!-- Brand Header -->
+          <div class="flex items-center justify-between px-2 py-1">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-glow-indigo border border-indigo-400/30">
+                <span class="text-base filter drop-shadow">🦉</span>
+              </div>
+              <div class="leading-tight">
+                <div class="font-bold text-sm text-white tracking-tight flex items-center gap-1.5">
+                  CorujaSync
+                  <span class="text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1 py-0.2 rounded uppercase">PRO</span>
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono">Backup Inteligente</div>
+              </div>
+            </div>
+            <button class="text-slate-500 hover:text-slate-300 text-xs p-1" title="Colapsar Menu">
+              <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+          </div>
+
+          <!-- Navigation Menu -->
+          <nav class="space-y-1">
+            <div class="px-2 pt-1 pb-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider font-mono">Principal</div>
+            
+            <!-- Download Studio (Active) -->
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-white bg-indigo-600 shadow-glow-indigo transition-all">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-download text-sm"></i>
+                <span>Download Studio</span>
+              </div>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            </a>
+
+            <!-- Spotlight Search -->
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-white/[0.05] hover:text-white transition-colors group">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 group-hover:text-indigo-400 text-sm transition-colors"></i>
+                <span>Spotlight Search</span>
+              </div>
+              <kbd class="text-[10px] font-mono bg-white/10 text-slate-400 px-1.5 py-0.5 rounded border border-white/10">Ctrl+K</kbd>
+            </a>
+
+            <!-- Smart Watcher -->
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-white/[0.05] hover:text-white transition-colors group">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-stopwatch text-slate-400 group-hover:text-indigo-400 text-sm transition-colors"></i>
+                <span>Smart Watcher</span>
+              </div>
+              <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/20 font-semibold">2 cursos</span>
+            </a>
+
+            <div class="px-2 pt-3 pb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider font-mono">Gerenciamento</div>
+
+            <!-- Licença Pro -->
+            <a href="#" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-white/[0.05] hover:text-white transition-colors group">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-key text-amber-400/80 group-hover:text-amber-300 text-sm transition-colors"></i>
+                <span>Licença Pro</span>
+              </div>
+              <span class="text-[10px] text-amber-400 font-mono font-medium">Ativa</span>
+            </a>
+
+            <!-- Configurações -->
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-white/[0.05] hover:text-white transition-colors group">
+              <i class="fa-solid fa-sliders text-slate-400 group-hover:text-indigo-400 text-sm transition-colors"></i>
+              <span>Configurações</span>
+            </a>
+
+            <!-- Sobre -->
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-white/[0.05] hover:text-white transition-colors group">
+              <i class="fa-regular fa-circle-question text-slate-400 group-hover:text-indigo-400 text-sm transition-colors"></i>
+              <span>Sobre &amp; Termos</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- Bottom Disk / Storage Card Widget -->
+        <div class="p-3 border-t border-surfaceBorder bg-black/20">
+          <div class="p-2.5 rounded-xl bg-slate-900/80 border border-white/5 shadow-inner">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-300">
+                <i class="fa-solid fa-hard-drive text-indigo-400 text-xs"></i>
+                <span>Armazenamento</span>
+              </div>
+              <span class="text-[10px] font-mono text-emerald-400">48.2 GB livre</span>
+            </div>
+            
+            <!-- Thin Capacity Progress Ring / Bar -->
+            <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden mb-1.5">
+              <div class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-1.5 rounded-full" style="width: 68%;"></div>
+            </div>
+
+            <div class="text-[9px] font-mono text-slate-400 truncate flex items-center justify-between">
+              <span class="truncate" title="D:\Concursos\SEFAZ-SP">D:\Concursos\SEFAZ-SP</span>
+              <span class="text-slate-500 ml-1">68%</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 3. Main Content Canvas - "Download Studio" View -->
+      <main class="flex-1 bg-obsidian overflow-y-auto p-5 space-y-4">
+        
+        <!-- CARD 1: Course Target & Mode Switcher -->
+        <section class="rounded-2xl bg-gradient-to-b from-[#131b2c] to-[#0f172a] border border-surfaceBorder p-4 shadow-glass relative">
+          <!-- Top Row -->
+          <div class="flex items-center justify-between mb-3.5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">1. Modo e Seleção de Conteúdo</h2>
+            </div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-[10px] font-bold tracking-wide uppercase">
+              <i class="fa-solid fa-certificate text-[9px] text-emerald-400"></i>
+              <span>★ Licença Vitalícia Pro Ativa</span>
+            </div>
+          </div>
+
+          <!-- Segmented Control Toggle -->
+          <div class="grid grid-cols-2 p-1 rounded-xl bg-slate-900/90 border border-white/5 mb-3.5 max-w-xl">
+            <button class="flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-glow-indigo transition-all">
+              <i class="fa-solid fa-box-archive text-amber-300"></i>
+              <span>Pacote / Curso Específico</span>
+            </button>
+            <button class="flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors">
+              <i class="fa-solid fa-book-bookmark text-slate-500"></i>
+              <span>Todos os Cursos Matriculados</span>
+            </button>
+          </div>
+
+          <!-- Inputs Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <!-- URL / ID Input -->
+            <div class="space-y-1">
+              <label class="text-[11px] font-medium text-slate-400 flex items-center justify-between">
+                <span>URL do Pacote ou ID Numérico</span>
+                <span class="text-[10px] font-mono text-indigo-400">Detecção Automática</span>
+              </label>
+              <div class="relative flex items-center">
+                <span class="absolute left-3 text-slate-500 text-xs">
+                  <i class="fa-solid fa-link"></i>
+                </span>
+                <input 
+                  type="text" 
+                  value="https://www.estrategiaconcursos.com.br/app/dashboard/pacote/400565"
+                  class="w-full bg-slate-900/90 border border-surfaceBorder rounded-xl pl-8 pr-8 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner"
+                />
+                <button class="absolute right-2.5 text-slate-500 hover:text-slate-300 text-xs transition-colors" title="Limpar campo">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Destination Directory Input -->
+            <div class="space-y-1">
+              <label class="text-[11px] font-medium text-slate-400 flex items-center justify-between">
+                <span>Diretório de Destino (Backup)</span>
+                <span class="text-[10px] font-mono text-emerald-400">NTFS • 48.2 GB livre</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <div class="relative flex-1">
+                  <span class="absolute left-3 top-2.5 text-slate-500 text-xs">
+                    <i class="fa-regular fa-folder-open"></i>
+                  </span>
+                  <input 
+                    type="text" 
+                    value="E:\Concursos\SEFAZ-SP" 
+                    readonly
+                    class="w-full bg-slate-900/90 border border-surfaceBorder rounded-xl pl-8 pr-3 py-2 text-xs font-mono text-slate-300 focus:outline-none cursor-default"
+                  />
+                </div>
+                <button class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm shrink-0">
+                  <i class="fa-solid fa-folder-tree text-amber-400"></i>
+                  <span>Procurar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARD 2: Options & Download Filters -->
+        <section class="rounded-2xl bg-gradient-to-b from-[#131b2c] to-[#0f172a] border border-surfaceBorder p-4 shadow-glass">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">2. Opções de Mídia e Rechecagem Inteligente</h2>
+            </div>
+            <span class="text-[10px] font-mono text-slate-400">Resolução de Conflitos: <span class="text-indigo-400">Smart Merge</span></span>
+          </div>
+
+          <!-- Pill-style checkboxes in responsive flex grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            
+            <!-- Checkbox 1: Baixar Videoaulas + Resolução -->
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/70 border border-indigo-500/30 bg-indigo-950/20">
+              <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-200">
+                <input type="checkbox" checked class="rounded border-slate-700 text-indigo-600 focus:ring-0 w-3.5 h-3.5 bg-slate-950">
+                <span class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-film text-indigo-400 text-xs"></i>
+                  <span>Videoaulas (.mp4)</span>
+                </span>
+              </label>
+              
+              <div class="relative inline-block">
+                <select class="bg-indigo-900/50 border border-indigo-400/30 text-indigo-200 text-[10px] font-mono rounded-lg px-2 py-1 focus:outline-none cursor-pointer">
+                  <option selected>720p HD</option>
+                  <option>1080p FHD</option>
+                  <option>480p SD</option>
+                  <option>360p Low</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Checkbox 2: Smart Resume Instantâneo -->
+            <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/70 border border-emerald-500/30 bg-emerald-950/20 cursor-pointer">
+              <div class="flex items-center gap-2 text-xs font-medium text-slate-200">
+                <input type="checkbox" checked class="rounded border-slate-700 text-emerald-600 focus:ring-0 w-3.5 h-3.5 bg-slate-950">
+                <span class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-bolt text-emerald-400 text-xs"></i>
+                  <span>Smart Resume</span>
+                </span>
+              </div>
+              <span class="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">0,001s</span>
+            </label>
+
+            <!-- Checkbox 3: Organizar em Pastas -->
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900/70 border border-surfaceBorder cursor-pointer text-xs font-medium text-slate-200 hover:border-slate-700 transition-colors">
+              <input type="checkbox" checked class="rounded border-slate-700 text-indigo-600 focus:ring-0 w-3.5 h-3.5 bg-slate-950">
+              <span class="flex items-center gap-1.5 truncate">
+                <i class="fa-solid fa-folder-tree text-amber-400 text-xs"></i>
+                <span class="truncate" title="Concurso > Disciplina > Aula">Hierarquia Inteligente</span>
+              </span>
+            </label>
+
+            <!-- Checkbox 4: Modo Headless -->
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900/50 border border-surfaceBorder cursor-pointer text-xs font-medium text-slate-400 hover:text-slate-200 hover:border-slate-700 transition-colors">
+              <input type="checkbox" class="rounded border-slate-700 text-indigo-600 focus:ring-0 w-3.5 h-3.5 bg-slate-950">
+              <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-ghost text-slate-500 text-xs"></i>
+                <span>Modo Headless</span>
+              </span>
+            </label>
+
+          </div>
+        </section>
+
+        <!-- CARD 3: Live Telemetry & Mission Control HUD -->
+        <section class="rounded-2xl bg-gradient-to-b from-[#131b2c] to-[#0f172a] border border-surfaceBorder p-4 shadow-glass">
+          <!-- Header and State -->
+          <div class="flex items-center justify-between mb-3.5">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">3. Painel de Telemetria em Tempo Real (HUD)</h2>
+            </div>
+            <div class="flex items-center gap-2 font-mono text-[11px]">
+              <span class="text-slate-400">Sessão:</span>
+              <span class="text-indigo-400 font-semibold">TLSv1.3 Encrypted</span>
+            </div>
+          </div>
+
+          <!-- Real-time Metrics Grid (4 Gauges) -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            
+            <!-- Gauge 1: Download Speed -->
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-white/5 relative overflow-hidden">
+              <div class="flex items-center justify-between text-slate-400 text-[11px] mb-1">
+                <span>Taxa de Download</span>
+                <i class="fa-solid fa-gauge-high text-indigo-400"></i>
+              </div>
+              <div class="flex items-baseline gap-1.5 mb-1">
+                <span class="text-xl font-bold font-mono text-white tracking-tight">14.8</span>
+                <span class="text-xs font-mono text-indigo-400">MB/s</span>
+              </div>
+              <!-- Micro sparkline graph SVG -->
+              <div class="w-full h-5">
+                <svg class="w-full h-full stroke-indigo-400 fill-none" viewBox="0 0 100 24" preserveAspectRatio="none">
+                  <path d="M 0,18 Q 15,10 30,14 T 60,6 T 85,10 T 100,4" stroke-width="2" stroke-linecap="round" />
+                  <path d="M 0,18 Q 15,10 30,14 T 60,6 T 85,10 T 100,4 L 100,24 L 0,24 Z" fill="url(#indigoGrad)" opacity="0.2" stroke="none" />
+                  <defs>
+                    <linearGradient id="indigoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#6366f1" />
+                      <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Gauge 2: Estimativa (ETA) -->
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-white/5">
+              <div class="flex items-center justify-between text-slate-400 text-[11px] mb-1">
+                <span>Tempo Restante (ETA)</span>
+                <i class="fa-regular fa-clock text-cyan-400"></i>
+              </div>
+              <div class="text-xl font-bold font-mono text-white tracking-tight mb-1">03m 42s</div>
+              <div class="text-[10px] font-mono text-cyan-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                <span>Buffer Dinâmico: 99.4%</span>
+              </div>
+            </div>
+
+            <!-- Gauge 3: Progresso da Aula Atual -->
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-white/5">
+              <div class="flex items-center justify-between text-slate-400 text-[11px] mb-1">
+                <span>Aula Atual</span>
+                <span class="font-mono text-[10px] text-amber-400 font-semibold">84%</span>
+              </div>
+              <div class="text-xs font-bold text-slate-200 truncate mb-1.5" title="Aula 04 - Direito Tributário (SEFAZ)">
+                Aula 04 - Dir. Tributário
+              </div>
+              <!-- Mini progress bar -->
+              <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-amber-400 h-1.5 rounded-full" style="width: 84%;"></div>
+              </div>
+            </div>
+
+            <!-- Gauge 4: Progresso Geral -->
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-white/5">
+              <div class="flex items-center justify-between text-slate-400 text-[11px] mb-1">
+                <span>Progresso do Pacote</span>
+                <span class="font-mono text-[10px] text-emerald-400 font-semibold">66%</span>
+              </div>
+              <div class="text-xl font-bold font-mono text-emerald-400 tracking-tight mb-1">12 / 18</div>
+              <div class="text-[10px] text-slate-400 font-mono">Aulas Concluídas</div>
+            </div>
+
+          </div>
+
+          <!-- Dual Progress Bars Section -->
+          <div class="space-y-2 mb-4 bg-slate-900/60 p-3 rounded-xl border border-white/5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-mono text-slate-300 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>Sincronizando: <strong class="text-white font-sans">Direito_Tributario_Aula04_Bloco03_720p.mp4</strong></span>
+              </span>
+              <span class="font-mono text-emerald-400 font-semibold">66.4% Geral</span>
+            </div>
+            
+            <!-- Main Glowing Gradient Progress Bar -->
+            <div class="w-full bg-slate-950 rounded-full h-3 p-0.5 border border-white/10 shadow-inner">
+              <div class="shimmer-bar h-full rounded-full shadow-glow-emerald" style="width: 66.4%;"></div>
+            </div>
+          </div>
+
+          <!-- Control CTAs Row -->
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <!-- Large Gradient CTA Button -->
+              <button class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-white font-semibold text-xs tracking-wide shadow-glow-emerald flex items-center gap-2.5 transition-all transform active:scale-98">
+                <i class="fa-solid fa-play text-xs"></i>
+                <span>Sincronização Ativa em Andamento</span>
+              </button>
+
+              <!-- Secondary Cancel / Pause Button -->
+              <button class="px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-medium text-xs flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-stop text-xs"></i>
+                <span>Interromper</span>
+              </button>
+            </div>
+
+            <!-- Aux actions -->
+            <div class="flex items-center gap-2 text-xs">
+              <button class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center gap-1.5 transition-colors">
+                <i class="fa-solid fa-folder-open text-amber-400"></i>
+                <span>Abrir Pasta de Destino</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARD 4: Terminal Log Console & Activity Stream -->
+        <section class="rounded-2xl bg-[#090d16] border border-surfaceBorder overflow-hidden shadow-2xl flex flex-col">
+          <!-- Terminal Header -->
+          <div class="bg-slate-900/90 px-4 py-2 border-b border-surfaceBorder flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-terminal text-xs text-indigo-400"></i>
+              <span class="text-xs font-semibold font-mono text-slate-300">Console de Atividades em Tempo Real</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-slate-200 text-[11px] font-mono flex items-center gap-1.5 border border-white/5 transition-colors">
+                <i class="fa-solid fa-eraser text-[10px]"></i>
+                <span>Limpar</span>
+              </button>
+              <button class="px-2.5 py-1 rounded bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-[11px] font-mono flex items-center gap-1.5 transition-colors shadow-sm">
+                <i class="fa-regular fa-copy text-[10px]"></i>
+                <span>📋 Copiar Logs</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Dark Terminal Viewport -->
+          <div class="p-3.5 font-mono text-xs leading-relaxed overflow-x-auto space-y-1.5 bg-[#070b12] text-slate-300 max-h-[160px] select-text">
+            <div class="flex items-start gap-2 text-slate-400">
+              <span class="text-slate-600 shrink-0">[18:32:01]</span>
+              <span class="text-cyan-400 font-semibold shrink-0">[INFO]</span>
+              <span>Autenticado com sucesso na sessão do aluno. Token JWT validado para usuário VIP.</span>
+            </div>
+            
+            <div class="flex items-start gap-2">
+              <span class="text-slate-600 shrink-0">[18:32:04]</span>
+              <span class="text-emerald-400 font-semibold shrink-0">[CACHE]</span>
+              <span>Smart Resume: <span class="text-emerald-300 font-semibold">'Aula 00 - Introdução ao Direito Tributário'</span> já existe e íntegra no disco (verificado em 0.001s). Saltando download.</span>
+            </div>
+
+            <div class="flex items-start gap-2">
+              <span class="text-slate-600 shrink-0">[18:32:10]</span>
+              <span class="text-amber-400 font-semibold shrink-0">[DOWNLOAD]</span>
+              <span>Baixando: Livro Eletrônico PDF - 18.4 MB [<span class="text-emerald-400">100% Concluído</span>] salvo em E:\Concursos\SEFAZ-SP\Aula_04.</span>
+            </div>
+
+            <div class="flex items-start gap-2 text-indigo-300">
+              <span class="text-slate-600 shrink-0">[18:32:15]</span>
+              <span class="text-indigo-400 font-semibold shrink-0">[VIDEO]</span>
+              <span>Transmitindo bloco 720p HD: 14.8 MB/s - ETA: 03m 42s [Thread-04 Chunk 18/32].</span>
+            </div>
+
+            <div class="flex items-center gap-2 text-slate-500 pt-1">
+              <span class="text-emerald-400 font-bold">❯</span>
+              <span class="text-slate-400">Aguardando próximo bloco de fragmentação HLS...</span>
+              <span class="inline-block w-2 h-3.5 bg-indigo-400 animate-pulse"></span>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+  </div>
+
+</body>
+</html>
