@@ -34,55 +34,50 @@ class SidebarNav(ctk.CTkFrame):
         self._build_ui()
 
     def _build_ui(self):
+        import os
+        import shutil
+
         # 1. Top Brand Header
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        header_frame.pack(fill="x", padx=15, pady=(20, 20))
+        header_frame.pack(fill="x", padx=15, pady=(16, 16))
 
-        title_lbl = ctk.CTkLabel(
-            header_frame,
-            text="🦉 CorujaSync",
-            font=get_font(18, "bold"),
-            text_color=THEME_COLORS["accent_primary"],
-            anchor="w",
+        brand_row = ctk.CTkFrame(header_frame, fg_color="transparent")
+        brand_row.pack(fill="x")
+
+        # Owl glyph in rounded gradient-like box
+        glyph_box = ctk.CTkFrame(
+            brand_row,
+            width=36,
+            height=36,
+            corner_radius=10,
+            fg_color=("#4F46E5", "#4338CA"),
         )
-        title_lbl.pack(fill="x")
+        glyph_box.pack(side="left", padx=(0, 10))
+        glyph_box.pack_propagate(False)
+        ctk.CTkLabel(glyph_box, text="🦉", font=get_font(18)).place(relx=0.5, rely=0.5, anchor="center")
 
-        sub_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
-        sub_frame.pack(fill="x", pady=(2, 0))
+        brand_text_box = ctk.CTkFrame(brand_row, fg_color="transparent")
+        brand_text_box.pack(side="left", fill="x", expand=True)
 
-        sub_lbl = ctk.CTkLabel(
-            sub_frame,
-            text="Backup Inteligente",
-            font=get_font(11),
-            text_color=THEME_COLORS["text_muted"],
-            anchor="w",
-        )
-        sub_lbl.pack(side="left")
+        title_row = ctk.CTkFrame(brand_text_box, fg_color="transparent")
+        title_row.pack(fill="x")
+        ctk.CTkLabel(title_row, text="CorujaSync", font=get_font(14, "bold"), text_color=THEME_COLORS["text_primary"]).pack(side="left")
+        ctk.CTkLabel(title_row, text="PRO", font=get_font(9, "bold"), fg_color=("#FEF3C7", "#78350F"), text_color=("#B45309", "#FBBF24"), corner_radius=4, padx=5, pady=1).pack(side="left", padx=5)
 
-        badge_pro = ctk.CTkLabel(
-            sub_frame,
-            text="PRO v2.0",
-            font=get_font(10, "bold"),
-            text_color="#10B981",
-            fg_color=("#E6F4EA", "#064E3B"),
-            corner_radius=6,
-            padx=6,
-            pady=1,
-        )
-        badge_pro.pack(side="right")
+        ctk.CTkLabel(brand_text_box, text="Backup Inteligente", font=get_font(10), text_color=THEME_COLORS["text_muted"], anchor="w").pack(fill="x")
 
         # Divisor sutil
         sep = ctk.CTkFrame(self, height=1, fg_color=THEME_COLORS["border"])
-        sep.pack(fill="x", padx=15, pady=(0, 15))
+        sep.pack(fill="x", padx=15, pady=(4, 12))
 
-        # 2. Itens de Navegação
+        # 2. Itens de Navegação (Stitch Design)
         items = [
-            ("download", "📥 Download"),
-            ("search", "🔍 Busca em PDFs"),
+            ("download", "📥 Download Studio"),
+            ("search", "🔍 Spotlight Search"),
             ("watcher", "⏱ Smart Watcher"),
-            ("settings", "⚙️ Configurações"),
             ("license", "🔑 Licença Pro"),
-            ("about", "📄 Termos & Sobre"),
+            ("settings", "⚙️ Configurações"),
+            ("about", "📄 Sobre & Termos"),
         ]
 
         nav_container = ctk.CTkFrame(self, fg_color="transparent")
@@ -93,34 +88,56 @@ class SidebarNav(ctk.CTkFrame):
                 nav_container,
                 text=label,
                 anchor="w",
-                font=get_font(13, "bold"),
+                font=get_font(12, "bold"),
                 height=38,
                 corner_radius=RADIUS_BUTTON,
                 fg_color="transparent",
                 text_color=THEME_COLORS["text_secondary"],
-                hover_color=("#E5E7EB", "#252836"),
+                hover_color=("#E2E8F0", "#1E293B"),
                 command=lambda k=view_key: self._on_btn_click(k),
             )
-            btn.pack(fill="x", pady=3)
+            btn.pack(fill="x", pady=2.5)
             self.nav_buttons[view_key] = btn
 
-        # 3. Rodapé com Status e Alternador de Tema
+        # 3. Rodapé com Widget de Armazenamento e Alternador de Tema
         footer_frame = ctk.CTkFrame(self, fg_color="transparent")
-        footer_frame.pack(fill="x", side="bottom", padx=15, pady=15)
+        footer_frame.pack(fill="x", side="bottom", padx=12, pady=12)
 
         # Divisor superior do rodapé
         sep_bottom = ctk.CTkFrame(footer_frame, height=1, fg_color=THEME_COLORS["border"])
-        sep_bottom.pack(fill="x", pady=(0, 12))
+        sep_bottom.pack(fill="x", pady=(0, 10))
+
+        # Widget de Armazenamento em Disco (Google Stitch Style)
+        storage_card = ctk.CTkFrame(
+            footer_frame,
+            fg_color=THEME_COLORS["input_bg"],
+            border_color=THEME_COLORS["border"],
+            border_width=1,
+            corner_radius=10,
+        )
+        storage_card.pack(fill="x", pady=(0, 8))
+
+        st_head = ctk.CTkFrame(storage_card, fg_color="transparent")
+        st_head.pack(fill="x", padx=8, pady=(6, 1))
+        ctk.CTkLabel(st_head, text="💾 Disco:", font=get_font(10, "bold"), text_color=THEME_COLORS["text_secondary"]).pack(side="left")
+        self.lbl_storage_free = ctk.CTkLabel(st_head, text="-- GB livre", font=get_font(10, "bold"), text_color=THEME_COLORS["success"])
+        self.lbl_storage_free.pack(side="right")
+
+        self.storage_progress = ctk.CTkProgressBar(storage_card, height=4, corner_radius=2)
+        self.storage_progress.pack(fill="x", padx=8, pady=(2, 6))
+        self.storage_progress.set(0.5)
+
+        self._update_disk_usage()
 
         # Badge de Status Operacional
         self.lbl_status = ctk.CTkLabel(
             footer_frame,
-            text="🟢 Sistema Pronto",
-            font=get_font(11, "bold"),
-            text_color=THEME_COLORS["text_muted"],
+            text="🟢 Conectado & Pronto",
+            font=get_font(10, "bold"),
+            text_color=THEME_COLORS["success"],
             anchor="w",
         )
-        self.lbl_status.pack(fill="x", pady=(0, 10))
+        self.lbl_status.pack(fill="x", pady=(0, 8))
 
         # Botão Rápido de Tema
         current_mode = ctk.get_appearance_mode().lower()
@@ -130,16 +147,32 @@ class SidebarNav(ctk.CTkFrame):
             text=theme_icon,
             font=get_font(11),
             height=30,
-            corner_radius=6,
-            fg_color=("#F3F4F6", "#202330"),
+            corner_radius=RADIUS_BUTTON,
+            fg_color=("#F1F5F9", "#1E293B"),
             text_color=THEME_COLORS["text_secondary"],
-            hover_color=("#E5E7EB", "#2A2E40"),
+            hover_color=("#E2E8F0", "#334155"),
             command=self._handle_theme_toggle,
         )
         self.btn_theme.pack(fill="x")
 
         # Seleciona Download por padrão
         self.set_active("download")
+
+    def _update_disk_usage(self):
+        try:
+            import os
+            import shutil
+            from core.config import get_default_download_dir, load_config
+            cfg = load_config()
+            target_dir = cfg.get("download_dir", get_default_download_dir())
+            path_to_check = target_dir if os.path.exists(target_dir) else "/"
+            total, used, free = shutil.disk_usage(path_to_check)
+            free_gb = free / (1024**3)
+            used_pct = used / total if total > 0 else 0.0
+            self.lbl_storage_free.configure(text=f"{free_gb:.1f} GB livre")
+            self.storage_progress.set(min(max(used_pct, 0.0), 1.0))
+        except Exception:
+            pass
 
     def _on_btn_click(self, view_key: str):
         self.set_active(view_key)

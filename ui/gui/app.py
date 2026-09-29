@@ -50,9 +50,9 @@ class CorujaSyncApp(ctk.CTk):
         ctk.set_appearance_mode(initial_theme)
         ctk.set_default_color_theme("blue")
 
-        self.title("CorujaSync Pro v2.0 - Backup Inteligente")
-        self.geometry("980x700")
-        self.minsize(880, 600)
+        self.title("CorujaSync Pro v2.0 - Backup Inteligente & Study Hub")
+        self.geometry("1040x720")
+        self.minsize(920, 620)
 
         self.event_queue = queue.Queue()
         self.worker: Optional[DownloadWorker] = None

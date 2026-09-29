@@ -1,27 +1,31 @@
 import os
+import sys
+import subprocess
+import shutil
 from typing import Callable, Optional, Dict, Any, Union
 from tkinter import filedialog
+from datetime import datetime
 import customtkinter as ctk
 
 from ui.gui.dialogs import show_info, show_success, show_error, show_warning, ask_confirm
-
 from ui.gui.theme import (
     THEME_COLORS,
     RADIUS_CARD,
     RADIUS_BUTTON,
+    RADIUS_INPUT,
     create_card_frame,
     get_font,
 )
 from core.config import get_default_download_dir
 from core.diagnostics import DiagnosticsStore
 from legal.license_manager import LicenseManager
-from datetime import datetime
 
 
 class DownloadView(ctk.CTkScrollableFrame):
     """
-    Estúdio principal de downloads com organização moderna em cards visuais,
-    dashboard de telemetria em tempo real (MB/s, ETA, progresso) e console de logs.
+    Download Studio & Mission Control HUD moderno inspirado no Google Stitch.
+    Combina seleção de conteúdo, opções granulares de mídia, dashboard de
+    telemetria em tempo real (MB/s, ETA, progresso duplo) e console de terminal.
     """
 
     def __init__(
@@ -41,27 +45,40 @@ class DownloadView(ctk.CTkScrollableFrame):
         self._build_ui()
 
     def _build_ui(self):
-        # 1. Card Superior: Alvo e Modo de Download
+        # =====================================================================
+        # CARD 1: Modo e Seleção de Conteúdo (Alvo do Download)
+        # =====================================================================
         card_target = create_card_frame(self)
-        card_target.pack(fill="x", padx=15, pady=(15, 10))
+        card_target.pack(fill="x", padx=15, pady=(15, 8))
 
-        # Título da Seção + Badge de Plano
+        # Cabeçalho: Título da Seção + Badge VIP/Licença
         head_row = ctk.CTkFrame(card_target, fg_color="transparent")
-        head_row.pack(fill="x", padx=15, pady=(12, 8))
+        head_row.pack(fill="x", padx=16, pady=(14, 8))
+
+        title_left = ctk.CTkFrame(head_row, fg_color="transparent")
+        title_left.pack(side="left")
+
+        dot_ind = ctk.CTkLabel(
+            title_left,
+            text="●",
+            font=get_font(12),
+            text_color=THEME_COLORS["accent_primary"],
+        )
+        dot_ind.pack(side="left", padx=(0, 6))
 
         lbl_target_title = ctk.CTkLabel(
-            head_row,
+            title_left,
             text="1. Modo e Seleção de Conteúdo",
-            font=get_font(14, "bold"),
+            font=get_font(13, "bold"),
             text_color=THEME_COLORS["text_primary"],
             anchor="w",
         )
         lbl_target_title.pack(side="left")
 
         is_pro = self.license_manager.is_premium()
-        badge_text = "★ LICENÇA PRO ATIVA" if is_pro else "★ PLANO FREE (1 DISCIPLINA DEMO)"
-        badge_fg = ("#D1FAE5", "#064E3B") if is_pro else ("#FEF3C7", "#78350F")
-        badge_tc = ("#065F46", "#34D399") if is_pro else ("#92400E", "#FBBF24")
+        badge_text = "★ LICENÇA VITALÍCIA PRO ATIVA" if is_pro else "★ PLANO FREE (1 DISCIPLINA DEMO)"
+        badge_fg = ("#DCFCE7", "#064E3B") if is_pro else ("#FEF3C7", "#78350F")
+        badge_tc = ("#15803D", "#34D399") if is_pro else ("#B45309", "#FBBF24")
 
         lbl_plan_badge = ctk.CTkLabel(
             head_row,
@@ -75,38 +92,53 @@ class DownloadView(ctk.CTkScrollableFrame):
         )
         lbl_plan_badge.pack(side="right")
 
-        # Segmented Button para o Modo
+        # Segmented Control para Alternar Modo (Google Stitch style)
         self.mode_var = ctk.StringVar(value="single")
         self.seg_mode = ctk.CTkSegmentedButton(
             card_target,
             values=["📦 Pacote / Curso Específico", "📚 Todos os Cursos Matriculados"],
             variable=self.mode_var,
             font=get_font(12, "bold"),
+            height=34,
+            corner_radius=RADIUS_BUTTON,
+            selected_color=THEME_COLORS["accent_primary"],
+            selected_hover_color=THEME_COLORS["accent_primary_hover"],
             command=self._on_mode_change,
         )
-        self.seg_mode.pack(fill="x", padx=15, pady=(0, 10))
+        self.seg_mode.pack(fill="x", padx=16, pady=(0, 12))
 
         # Linha Entrada de URL / ID
         self.row_input = ctk.CTkFrame(card_target, fg_color="transparent")
-        self.row_input.pack(fill="x", padx=15, pady=4)
+        self.row_input.pack(fill="x", padx=16, pady=3)
 
-        self.lbl_curso = ctk.CTkLabel(self.row_input, text="URL ou ID:", width=90, anchor="w", font=get_font(12, "bold"))
+        self.lbl_curso = ctk.CTkLabel(
+            self.row_input,
+            text="URL ou ID:",
+            width=90,
+            anchor="w",
+            font=get_font(11, "bold"),
+            text_color=THEME_COLORS["text_secondary"],
+        )
         self.lbl_curso.pack(side="left")
 
         self.entry_curso = ctk.CTkEntry(
             self.row_input,
-            placeholder_text="Cole a URL ou ID numérico (ex: 400565 ou https://.../pacote/400565)",
-            font=get_font(12),
-            height=34,
+            placeholder_text="Cole a URL ou ID do pacote (ex: https://.../pacote/400565 ou 400565)",
+            font=get_font(11, family="mono"),
+            height=36,
+            corner_radius=RADIUS_INPUT,
+            fg_color=THEME_COLORS["input_bg"],
+            border_color=THEME_COLORS["border"],
         )
         self.entry_curso.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
         btn_clear = ctk.CTkButton(
             self.row_input,
             text="✕",
-            width=34,
-            height=34,
-            font=get_font(12, "bold"),
+            width=36,
+            height=36,
+            font=get_font(11, "bold"),
+            corner_radius=RADIUS_BUTTON,
             fg_color=THEME_COLORS["slate"],
             hover_color=THEME_COLORS["slate_hover"],
             command=lambda: self.entry_curso.delete(0, "end"),
@@ -115,207 +147,311 @@ class DownloadView(ctk.CTkScrollableFrame):
 
         # Linha Diretório de Destino
         row_dir = ctk.CTkFrame(card_target, fg_color="transparent")
-        row_dir.pack(fill="x", padx=15, pady=(4, 12))
+        row_dir.pack(fill="x", padx=16, pady=(4, 14))
 
-        lbl_dir = ctk.CTkLabel(row_dir, text="Destino:", width=90, anchor="w", font=get_font(12, "bold"))
+        lbl_dir = ctk.CTkLabel(
+            row_dir,
+            text="Destino:",
+            width=90,
+            anchor="w",
+            font=get_font(11, "bold"),
+            text_color=THEME_COLORS["text_secondary"],
+        )
         lbl_dir.pack(side="left")
 
-        self.entry_dir = ctk.CTkEntry(row_dir, font=get_font(12), height=34)
-        self.entry_dir.insert(0, self.config.get("download_dir", get_default_download_dir()))
+        self.entry_dir = ctk.CTkEntry(
+            row_dir,
+            font=get_font(11, family="mono"),
+            height=36,
+            corner_radius=RADIUS_INPUT,
+            fg_color=THEME_COLORS["input_bg"],
+            border_color=THEME_COLORS["border"],
+        )
+        initial_dir = self.config.get("download_dir", get_default_download_dir())
+        self.entry_dir.insert(0, initial_dir)
         self.entry_dir.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
         btn_browse = ctk.CTkButton(
             row_dir,
             text="📁 Procurar",
-            width=90,
-            height=34,
-            font=get_font(12, "bold"),
+            width=95,
+            height=36,
+            font=get_font(11, "bold"),
+            corner_radius=RADIUS_BUTTON,
+            fg_color=THEME_COLORS["slate"],
+            hover_color=THEME_COLORS["slate_hover"],
             command=self._browse_dir,
         )
         btn_browse.pack(side="right")
 
-        # 2. Card: Opções de Download e Qualidade de Vídeo
+        # =====================================================================
+        # CARD 2: Opções de Mídia e Rechecagem Inteligente
+        # =====================================================================
         card_options = create_card_frame(self)
-        card_options.pack(fill="x", padx=15, pady=5)
+        card_options.pack(fill="x", padx=15, pady=4)
 
-        lbl_opt_title = ctk.CTkLabel(
-            card_options,
-            text="2. Opções de Mídia e Rechecagem",
-            font=get_font(14, "bold"),
-            text_color=THEME_COLORS["text_primary"],
-            anchor="w",
-        )
-        lbl_opt_title.pack(fill="x", padx=15, pady=(12, 8))
+        opt_head = ctk.CTkFrame(card_options, fg_color="transparent")
+        opt_head.pack(fill="x", padx=16, pady=(12, 6))
+
+        opt_left = ctk.CTkFrame(opt_head, fg_color="transparent")
+        opt_left.pack(side="left")
+        ctk.CTkLabel(opt_left, text="●", font=get_font(12), text_color=THEME_COLORS["cyan"]).pack(side="left", padx=(0, 6))
+        ctk.CTkLabel(opt_left, text="2. Opções de Mídia e Rechecagem Inteligente", font=get_font(13, "bold"), text_color=THEME_COLORS["text_primary"]).pack(side="left")
+
+        ctk.CTkLabel(
+            opt_head,
+            text="Resolução de Conflitos: Smart Resume 0,001s",
+            font=get_font(10, family="mono"),
+            text_color=THEME_COLORS["accent_primary"],
+        ).pack(side="right")
 
         row_toggles = ctk.CTkFrame(card_options, fg_color="transparent")
-        row_toggles.pack(fill="x", padx=15, pady=(0, 12))
+        row_toggles.pack(fill="x", padx=16, pady=(0, 12))
 
         # Switch de Videoaulas
         self.var_videos = ctk.BooleanVar(value=self.config.get("download_videos", False))
         self.switch_videos = ctk.CTkSwitch(
             row_toggles,
-            text="🎬 Baixar Videoaulas (.mp4)",
+            text="🎬 Videoaulas (.mp4)",
             variable=self.var_videos,
-            font=get_font(12, "bold"),
+            font=get_font(11, "bold"),
+            progress_color=THEME_COLORS["accent_primary"],
         )
-        self.switch_videos.pack(side="left", padx=(0, 20))
+        self.switch_videos.pack(side="left", padx=(0, 16))
 
-        # Segmented Button de Qualidade
-        lbl_qual = ctk.CTkLabel(row_toggles, text="Resolução:", font=get_font(12))
+        # Seletor de Resolução
+        lbl_qual = ctk.CTkLabel(row_toggles, text="Resolução:", font=get_font(11), text_color=THEME_COLORS["text_secondary"])
         lbl_qual.pack(side="left", padx=(0, 6))
 
-        self.var_quality = ctk.StringVar(value=self.config.get("preferred_quality", "720p"))
+        self.var_quality = ctk.StringVar(value=self.config.get("preferred_quality", "720p HD"))
         self.seg_quality = ctk.CTkSegmentedButton(
             row_toggles,
             values=["720p HD", "480p", "360p"],
             variable=self.var_quality,
-            font=get_font(11, "bold"),
+            font=get_font(10, "bold"),
+            height=28,
+            corner_radius=RADIUS_BUTTON,
+            selected_color=THEME_COLORS["accent_primary"],
         )
-        self.seg_quality.pack(side="left", padx=(0, 20))
+        self.seg_quality.pack(side="left", padx=(0, 16))
+
+        # Switch de Hierarquia Inteligente
+        self.var_hierarchy = ctk.BooleanVar(value=True)
+        self.switch_hierarchy = ctk.CTkSwitch(
+            row_toggles,
+            text="📁 Hierarquia por Concurso",
+            variable=self.var_hierarchy,
+            font=get_font(11),
+            progress_color=THEME_COLORS["success"],
+        )
+        self.switch_hierarchy.pack(side="left", padx=(0, 16))
 
         # Switch de Rechecagem Forçada
         self.var_force = ctk.BooleanVar(value=False)
         self.switch_force = ctk.CTkSwitch(
             row_toggles,
-            text="🔄 Forçar Rechecagem no Navegador",
+            text="🔄 Forçar Rechecagem",
             variable=self.var_force,
-            font=get_font(12),
+            font=get_font(11),
+            progress_color=THEME_COLORS["warning"],
         )
         self.switch_force.pack(side="left")
 
-        # 3. Card: Painel de Controle e Métricas em Tempo Real
+        # =====================================================================
+        # CARD 3: Painel de Telemetria em Tempo Real (HUD)
+        # =====================================================================
         card_telemetry = create_card_frame(self)
-        card_telemetry.pack(fill="x", padx=15, pady=5)
+        card_telemetry.pack(fill="x", padx=15, pady=4)
 
-        # Botões de Ação Principais
+        # Header do HUD
+        hud_head = ctk.CTkFrame(card_telemetry, fg_color="transparent")
+        hud_head.pack(fill="x", padx=16, pady=(12, 6))
+
+        hud_left = ctk.CTkFrame(hud_head, fg_color="transparent")
+        hud_left.pack(side="left")
+        ctk.CTkLabel(hud_left, text="●", font=get_font(12), text_color=THEME_COLORS["success"]).pack(side="left", padx=(0, 6))
+        ctk.CTkLabel(hud_left, text="3. Painel de Telemetria em Tempo Real (HUD)", font=get_font(13, "bold"), text_color=THEME_COLORS["text_primary"]).pack(side="left")
+
+        ctk.CTkLabel(
+            hud_head,
+            text="Sessão: TLSv1.3 Encrypted",
+            font=get_font(10, family="mono"),
+            text_color=THEME_COLORS["accent_primary"],
+        ).pack(side="right")
+
+        # Grid de 4 Gauges (Google Stitch HUD)
+        kpi_grid = ctk.CTkFrame(card_telemetry, fg_color="transparent")
+        kpi_grid.pack(fill="x", padx=16, pady=(4, 10))
+
+        # Gauge 1: Taxa de Download (MB/s)
+        g1 = ctk.CTkFrame(kpi_grid, fg_color=THEME_COLORS["input_bg"], border_color=THEME_COLORS["border"], border_width=1, corner_radius=10)
+        g1.pack(side="left", fill="both", expand=True, padx=(0, 6))
+        ctk.CTkLabel(g1, text="TAXA DE DOWNLOAD", font=get_font(9, "bold"), text_color=THEME_COLORS["text_muted"]).pack(anchor="w", padx=10, pady=(6, 0))
+        self.lbl_speed = ctk.CTkLabel(g1, text="0.00 MB/s", font=get_font(15, "bold"), text_color=THEME_COLORS["accent_primary"])
+        self.lbl_speed.pack(anchor="w", padx=10, pady=(0, 6))
+
+        # Gauge 2: Estimativa de Tempo (ETA)
+        g2 = ctk.CTkFrame(kpi_grid, fg_color=THEME_COLORS["input_bg"], border_color=THEME_COLORS["border"], border_width=1, corner_radius=10)
+        g2.pack(side="left", fill="both", expand=True, padx=(0, 6))
+        ctk.CTkLabel(g2, text="TEMPO RESTANTE (ETA)", font=get_font(9, "bold"), text_color=THEME_COLORS["text_muted"]).pack(anchor="w", padx=10, pady=(6, 0))
+        self.lbl_eta = ctk.CTkLabel(g2, text="--:--", font=get_font(15, "bold"), text_color=THEME_COLORS["cyan"])
+        self.lbl_eta.pack(anchor="w", padx=10, pady=(0, 6))
+
+        # Gauge 3: Progresso da Aula Atual
+        g3 = ctk.CTkFrame(kpi_grid, fg_color=THEME_COLORS["input_bg"], border_color=THEME_COLORS["border"], border_width=1, corner_radius=10)
+        g3.pack(side="left", fill="both", expand=True, padx=(0, 6))
+        ctk.CTkLabel(g3, text="AULA ATUAL", font=get_font(9, "bold"), text_color=THEME_COLORS["text_muted"]).pack(anchor="w", padx=10, pady=(6, 0))
+        self.lbl_percent = ctk.CTkLabel(g3, text="0%", font=get_font(15, "bold"), text_color=THEME_COLORS["warning"])
+        self.lbl_percent.pack(anchor="w", padx=10, pady=(0, 6))
+
+        # Gauge 4: Progresso Geral
+        g4 = ctk.CTkFrame(kpi_grid, fg_color=THEME_COLORS["input_bg"], border_color=THEME_COLORS["border"], border_width=1, corner_radius=10)
+        g4.pack(side="left", fill="both", expand=True)
+        ctk.CTkLabel(g4, text="ARQUIVO / STATUS", font=get_font(9, "bold"), text_color=THEME_COLORS["text_muted"]).pack(anchor="w", padx=10, pady=(6, 0))
+        self.lbl_current_file = ctk.CTkLabel(g4, text="Pronto para iniciar", font=get_font(11, "bold"), text_color=THEME_COLORS["success"])
+        self.lbl_current_file.pack(anchor="w", padx=10, pady=(2, 6))
+
+        # Barra de Progresso Principal
+        prog_row = ctk.CTkFrame(card_telemetry, fg_color="transparent")
+        prog_row.pack(fill="x", padx=16, pady=(2, 2))
+        ctk.CTkLabel(prog_row, text="Progresso do Bloco Atual:", font=get_font(11), text_color=THEME_COLORS["text_secondary"]).pack(side="left")
+        self.lbl_prog_title = ctk.CTkLabel(prog_row, text="Sincronização Inativa", font=get_font(11, "bold"), text_color=THEME_COLORS["text_primary"])
+        self.lbl_prog_title.pack(side="right")
+
+        self.progress_bar = ctk.CTkProgressBar(card_telemetry, height=8, corner_radius=4, progress_color=THEME_COLORS["success"])
+        self.progress_bar.pack(fill="x", padx=16, pady=(2, 12))
+        self.progress_bar.set(0.0)
+
+        # Barra de Botões de Ação
         btn_bar = ctk.CTkFrame(card_telemetry, fg_color="transparent")
-        btn_bar.pack(fill="x", padx=15, pady=(12, 10))
+        btn_bar.pack(fill="x", padx=16, pady=(0, 14))
 
         self.btn_start = ctk.CTkButton(
             btn_bar,
-            text="▶ Iniciar Download",
+            text="▶ Iniciar Sincronização Inteligente",
             fg_color=THEME_COLORS["success"],
             hover_color=THEME_COLORS["success_hover"],
-            font=get_font(13, "bold"),
+            font=get_font(12, "bold"),
             height=38,
-            width=160,
+            corner_radius=RADIUS_BUTTON,
             command=self.on_start,
         )
-        self.btn_start.pack(side="left", padx=(0, 10))
+        self.btn_start.pack(side="left", padx=(0, 8))
 
         self.btn_stop = ctk.CTkButton(
             btn_bar,
-            text="⏹ Cancelar",
+            text="⏹ Interromper",
             fg_color=THEME_COLORS["danger"],
             hover_color=THEME_COLORS["danger_hover"],
-            font=get_font(13, "bold"),
+            font=get_font(12, "bold"),
             height=38,
             width=120,
+            corner_radius=RADIUS_BUTTON,
             state="disabled",
             command=self.on_stop,
         )
-        self.btn_stop.pack(side="left", padx=(0, 10))
+        self.btn_stop.pack(side="left", padx=(0, 8))
+
+        btn_open_folder = ctk.CTkButton(
+            btn_bar,
+            text="📁 Abrir Pasta",
+            fg_color=THEME_COLORS["slate"],
+            hover_color=THEME_COLORS["slate_hover"],
+            font=get_font(11, "bold"),
+            height=38,
+            width=110,
+            corner_radius=RADIUS_BUTTON,
+            command=self._open_download_dir,
+        )
+        btn_open_folder.pack(side="left")
 
         self.btn_diag = ctk.CTkButton(
             btn_bar,
-            text="🛠 Exportar Diagnóstico",
+            text="🛠 Diagnóstico",
             fg_color=THEME_COLORS["slate"],
             hover_color=THEME_COLORS["slate_hover"],
-            font=get_font(12, "bold"),
+            font=get_font(11),
             height=38,
-            width=160,
+            width=100,
+            corner_radius=RADIUS_BUTTON,
             command=self._export_diagnostics,
         )
         self.btn_diag.pack(side="right")
 
-        self.btn_copy_log = ctk.CTkButton(
-            btn_bar,
-            text="📋 Copiar Logs",
-            fg_color="transparent",
-            hover_color=("#E5E7EB", "#252836"),
-            text_color=THEME_COLORS["text_secondary"],
-            font=get_font(11, "bold"),
-            height=38,
-            width=110,
-            command=self.copy_logs,
-        )
-        self.btn_copy_log.pack(side="right", padx=4)
+        # =====================================================================
+        # CARD 4: Terminal Log Console & Activity Stream
+        # =====================================================================
+        card_log = create_card_frame(self)
+        card_log.pack(fill="both", expand=True, padx=15, pady=(4, 15))
+
+        log_head = ctk.CTkFrame(card_log, fg_color="transparent")
+        log_head.pack(fill="x", padx=16, pady=(10, 4))
+
+        log_left = ctk.CTkFrame(log_head, fg_color="transparent")
+        log_left.pack(side="left")
+        ctk.CTkLabel(log_left, text="●", font=get_font(12), text_color=THEME_COLORS["accent_primary"]).pack(side="left", padx=(0, 6))
+        ctk.CTkLabel(log_left, text="4. Console de Atividades em Tempo Real", font=get_font(12, "bold"), text_color=THEME_COLORS["text_primary"]).pack(side="left")
+
+        log_btns = ctk.CTkFrame(log_head, fg_color="transparent")
+        log_btns.pack(side="right")
 
         self.btn_clear_log = ctk.CTkButton(
-            btn_bar,
+            log_btns,
             text="🗑 Limpar",
             fg_color="transparent",
-            hover_color=("#E5E7EB", "#252836"),
+            hover_color=("#E2E8F0", "#1E293B"),
             text_color=THEME_COLORS["text_secondary"],
             font=get_font(11),
-            height=38,
-            width=80,
+            height=28,
+            width=70,
+            corner_radius=RADIUS_BUTTON,
             command=self.clear_logs,
         )
-        self.btn_clear_log.pack(side="right", padx=2)
+        self.btn_clear_log.pack(side="left", padx=2)
 
-        # Divisor
-        sep_telemetry = ctk.CTkFrame(card_telemetry, height=1, fg_color=THEME_COLORS["border"])
-        sep_telemetry.pack(fill="x", padx=15, pady=4)
-
-        # Grid de KPIs em tempo real
-        kpi_row = ctk.CTkFrame(card_telemetry, fg_color="transparent")
-        kpi_row.pack(fill="x", padx=15, pady=8)
-
-        # KPI 1: Arquivo Ativo
-        kpi_file_box = ctk.CTkFrame(kpi_row, fg_color=THEME_COLORS["input_bg"], corner_radius=8)
-        kpi_file_box.pack(side="left", fill="both", expand=True, padx=(0, 6), pady=2)
-        ctk.CTkLabel(kpi_file_box, text="ARQUIVO ATIVO", font=get_font(9, "bold"), text_color=THEME_COLORS["text_muted"]).pack(anchor="w", padx=10, pady=(6, 0))
-        self.lbl_current_file = ctk.CTkLabel(kpi_file_box, text="Nenhum download em andamento", font=get_font(11, "bold"), anchor="w")
-        self.lbl_current_file.pack(anchor="w", padx=10, pady=(0, 6))
-
-        # KPI 2: Velocidade
-        kpi_speed_box = ctk.CTkFrame(kpi_row, fg_color=THEME_COLORS["input_bg"], corner_radius=8, width=120)
-        kpi_speed_box.pack(side="left", fill="y", padx=4, pady=2)
-        ctk.CTkLabel(kpi_speed_box, text="VELOCIDADE", font=get_font(9, "bold"), text_color=THEME_COLORS["text_muted"]).pack(anchor="w", padx=10, pady=(6, 0))
-        self.lbl_speed = ctk.CTkLabel(kpi_speed_box, text="0.00 MB/s", font=get_font(12, "bold"), text_color=THEME_COLORS["accent_primary"])
-        self.lbl_speed.pack(anchor="w", padx=10, pady=(0, 6))
-
-        # KPI 3: Tempo Estimado (ETA)
-        kpi_eta_box = ctk.CTkFrame(kpi_row, fg_color=THEME_COLORS["input_bg"], corner_radius=8, width=110)
-        kpi_eta_box.pack(side="left", fill="y", padx=(4, 0), pady=2)
-        ctk.CTkLabel(kpi_eta_box, text="RESTANTE (ETA)", font=get_font(9, "bold"), text_color=THEME_COLORS["text_muted"]).pack(anchor="w", padx=10, pady=(6, 0))
-        self.lbl_eta = ctk.CTkLabel(kpi_eta_box, text="--:--", font=get_font(12, "bold"))
-        self.lbl_eta.pack(anchor="w", padx=10, pady=(0, 6))
-
-        # Barra de Progresso com Indicador Numérico
-        prog_header = ctk.CTkFrame(card_telemetry, fg_color="transparent")
-        prog_header.pack(fill="x", padx=15, pady=(4, 2))
-        ctk.CTkLabel(prog_header, text="Progresso do Bloco Atual:", font=get_font(11), text_color=THEME_COLORS["text_secondary"]).pack(side="left")
-        self.lbl_percent = ctk.CTkLabel(prog_header, text="0%", font=get_font(11, "bold"), text_color=THEME_COLORS["accent_primary"])
-        self.lbl_percent.pack(side="right")
-
-        self.progress_bar = ctk.CTkProgressBar(card_telemetry, height=10, corner_radius=5)
-        self.progress_bar.pack(fill="x", padx=15, pady=(2, 12))
-        self.progress_bar.set(0.0)
-
-        # 4. Card: Console de Logs Integrado
-        card_log = create_card_frame(self)
-        card_log.pack(fill="both", expand=True, padx=15, pady=(5, 15))
-
-        lbl_log_title = ctk.CTkLabel(
-            card_log,
-            text="3. Terminal de Eventos e Execução",
-            font=get_font(13, "bold"),
+        self.btn_copy_log = ctk.CTkButton(
+            log_btns,
+            text="📋 Copiar Logs",
+            fg_color=THEME_COLORS["slate"],
+            hover_color=THEME_COLORS["slate_hover"],
             text_color=THEME_COLORS["text_primary"],
-            anchor="w",
+            font=get_font(11, "bold"),
+            height=28,
+            width=100,
+            corner_radius=RADIUS_BUTTON,
+            command=self.copy_logs,
         )
-        lbl_log_title.pack(fill="x", padx=15, pady=(10, 4))
+        self.btn_copy_log.pack(side="left", padx=2)
 
         self.log_box = ctk.CTkTextbox(
             card_log,
             wrap="none",
             font=get_font(11, family="mono"),
-            height=200,
-            corner_radius=8,
+            height=180,
+            corner_radius=10,
             fg_color=THEME_COLORS["input_bg"],
+            border_color=THEME_COLORS["border"],
+            border_width=1,
         )
-        self.log_box.pack(fill="both", expand=True, padx=15, pady=(0, 12))
+        self.log_box.pack(fill="both", expand=True, padx=16, pady=(0, 12))
+
+    def _open_download_dir(self):
+        target = self.entry_dir.get().strip()
+        if not target or not os.path.exists(target):
+            try:
+                os.makedirs(target, exist_ok=True)
+            except Exception:
+                pass
+        if os.path.exists(target):
+            try:
+                if sys.platform == "win32":
+                    os.startfile(target)
+                elif sys.platform == "darwin":
+                    subprocess.Popen(["open", target])
+                else:
+                    subprocess.Popen(["xdg-open", target])
+            except Exception as e:
+                self.append_log(f"\n[AVISO] Não foi possível abrir pasta: {e}\n", tag="warning")
 
     def _browse_dir(self):
         selected = filedialog.askdirectory(initialdir=self.entry_dir.get())
@@ -389,7 +525,9 @@ class DownloadView(ctk.CTkScrollableFrame):
     ):
         """Atualiza os indicadores do dashboard em tempo real."""
         if current_file:
-            self.lbl_current_file.configure(text=current_file)
+            short_name = os.path.basename(current_file) if len(current_file) > 40 else current_file
+            self.lbl_current_file.configure(text=short_name)
+            self.lbl_prog_title.configure(text=short_name)
         if speed_mbps is not None:
             self.lbl_speed.configure(text=f"{speed_mbps:.2f} MB/s")
         if eta_seconds is not None:
@@ -408,20 +546,20 @@ class DownloadView(ctk.CTkScrollableFrame):
     def set_running_state(self, is_running: bool):
         """Alterna a disponibilidade dos botões durante execução."""
         if is_running:
-            self.btn_start.configure(state="disabled")
+            self.btn_start.configure(state="disabled", text="⏳ Sincronização em Andamento...")
             self.btn_stop.configure(state="normal")
             self.seg_mode.configure(state="disabled")
         else:
-            self.btn_start.configure(state="normal")
+            self.btn_start.configure(state="normal", text="▶ Iniciar Sincronização Inteligente")
             self.btn_stop.configure(state="disabled")
             self.seg_mode.configure(state="normal")
             self.lbl_speed.configure(text="0.00 MB/s")
             self.lbl_eta.configure(text="--:--")
+            self.lbl_prog_title.configure(text="Sincronização Inativa")
 
     def get_run_parameters(self) -> Dict[str, Any]:
         """Extrai todos os parâmetros configurados pelo usuário na tela."""
         is_single = "Específico" in self.mode_var.get() or self.mode_var.get() == "single"
-        # Trata resolução (remove ' HD')
         raw_quality = self.var_quality.get().split()[0]
         return {
             "mode": "single" if is_single else "batch",

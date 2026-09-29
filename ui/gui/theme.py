@@ -5,54 +5,60 @@ Centraliza paletas de cores, tipografia, cantos arredondados e estilos consisten
 from typing import Dict, Any, Tuple
 import customtkinter as ctk
 
-# Paleta de Cores
+# Paleta de Cores Inspirada no Google Stitch (Obsidian & Electric Indigo)
 THEME_COLORS = {
-    # Fundo principal da aplicação
-    "bg_main": ("#F3F4F6", "#0F1117"),
-    # Barra lateral de navegação
-    "bg_sidebar": ("#FFFFFF", "#161822"),
-    # Fundo de cards e containers agrupados
-    "card_bg": ("#FFFFFF", "#1E202B"),
-    # Fundo secundário / inputs
-    "input_bg": ("#F9FAFB", "#14161F"),
+    # Fundo principal da aplicação (Obsidian Dark)
+    "bg_main": ("#F1F5F9", "#0B0F17"),
+    # Barra lateral de navegação (Panel)
+    "bg_sidebar": ("#FFFFFF", "#0F172A"),
+    # Fundo de cards e containers agrupados (Dark Surface)
+    "card_bg": ("#FFFFFF", "#111827"),
+    # Fundo secundário / inputs / terminal
+    "input_bg": ("#F8FAFC", "#070B12"),
+    "terminal_bg": ("#F8FAFC", "#070B12"),
     # Bordas sutis de 1px
-    "border": ("#E5E7EB", "#2B2E3D"),
-    "border_focus": ("#3B82F6", "#60A5FA"),
-    # Ações e Destaques Primários (Electric Blue)
-    "accent_primary": ("#2563EB", "#3B82F6"),
-    "accent_primary_hover": ("#1D4ED8", "#2563EB"),
-    # Sucesso / Iniciar (Emerald)
+    "border": ("#E2E8F0", "#1E293B"),
+    "border_focus": ("#6366F1", "#818CF8"),
+    # Ações e Destaques Primários (Electric Indigo)
+    "accent_primary": ("#4F46E5", "#6366F1"),
+    "accent_primary_hover": ("#4338CA", "#4F46E5"),
+    # Sucesso / Telemetria Ativa (Emerald)
     "success": ("#059669", "#10B981"),
     "success_hover": ("#047857", "#059669"),
     # Perigo / Cancelar (Rose Red)
-    "danger": ("#DC2626", "#EF4444"),
-    "danger_hover": ("#B91C1C", "#DC2626"),
+    "danger": ("#DC2626", "#F43F5E"),
+    "danger_hover": ("#B91C1C", "#E11D48"),
+    # Alerta / Atenção (Amber)
+    "warning": ("#D97706", "#F59E0B"),
+    "warning_hover": ("#B45309", "#D97706"),
+    # Ciano / Buffers
+    "cyan": ("#0891B2", "#06B6D4"),
     # Secundário / Slate
-    "slate": ("#475569", "#334155"),
-    "slate_hover": ("#334155", "#1E293B"),
+    "slate": ("#475569", "#1E293B"),
+    "slate_hover": ("#334155", "#334155"),
     # Textos
-    "text_primary": ("#111827", "#F9FAFB"),
-    "text_secondary": ("#4B5563", "#9CA3AF"),
-    "text_muted": ("#9CA3AF", "#6B7280"),
+    "text_primary": ("#0F172A", "#F8FAFC"),
+    "text_secondary": ("#475569", "#94A3B8"),
+    "text_muted": ("#94A3B8", "#64748B"),
     # Cores de tags do terminal
-    "tag_info": ("#1D4ED8", "#60A5FA"),
-    "tag_success": ("#047857", "#34D399"),
-    "tag_warning": ("#B45309", "#FBBF24"),
-    "tag_error": ("#B91C1C", "#F87171"),
+    "tag_info": ("#2563EB", "#38BDF8"),
+    "tag_success": ("#059669", "#34D399"),
+    "tag_warning": ("#D97706", "#FBBF24"),
+    "tag_error": ("#DC2626", "#F87171"),
     # Badges e modais de diálogo
-    "dialog_bg": ("#FFFFFF", "#181A24"),
-    "badge_info": ("#DBEAFE", "#1E3A8A"),
-    "badge_success": ("#D1FAE5", "#064E3B"),
-    "badge_warning": ("#FEF3C7", "#78350F"),
-    "badge_error": ("#FEE2E2", "#7F1D1D"),
-    "badge_confirm": ("#EDE9FE", "#4C1D95"),
+    "dialog_bg": ("#FFFFFF", "#0F172A"),
+    "badge_info": ("#EEF2FF", "#1E1B4B"),
+    "badge_success": ("#ECFDF5", "#064E3B"),
+    "badge_warning": ("#FFFBEB", "#78350F"),
+    "badge_error": ("#FFF1F2", "#881337"),
+    "badge_confirm": ("#F5F3FF", "#2E1065"),
 }
 
-# Geometria e Estilização
-RADIUS_CARD = 10
-RADIUS_INPUT = 8
-RADIUS_BUTTON = 8
-RADIUS_DIALOG = 14
+# Geometria e Estilização (Cantos Arredondados Raycast/Linear)
+RADIUS_CARD = 14
+RADIUS_INPUT = 10
+RADIUS_BUTTON = 10
+RADIUS_DIALOG = 16
 BORDER_WIDTH_CARD = 1
 BORDER_WIDTH_DIALOG = 1
 

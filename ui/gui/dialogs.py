@@ -59,9 +59,9 @@ class ModernDialog(ctk.CTkToplevel):
             "warning": {
                 "icon": "⚠️",
                 "badge_bg": THEME_COLORS["badge_warning"],
-                "accent": THEME_COLORS["tag_warning"],
-                "btn_color": THEME_COLORS["tag_warning"],
-                "btn_hover": ("#92400E", "#D97706"),
+                "accent": THEME_COLORS["warning"],
+                "btn_color": THEME_COLORS["warning"],
+                "btn_hover": THEME_COLORS["warning_hover"],
             },
             "error": {
                 "icon": "✕",
@@ -71,9 +71,9 @@ class ModernDialog(ctk.CTkToplevel):
                 "btn_hover": THEME_COLORS["danger_hover"],
             },
             "confirm": {
-                "icon": "❓",
-                "badge_bg": THEME_COLORS["badge_confirm"],
-                "accent": ("#7C3AED", "#8B5CF6"),
+                "icon": "⚠️",
+                "badge_bg": THEME_COLORS["badge_warning"],
+                "accent": THEME_COLORS["warning"],
                 "btn_color": THEME_COLORS["danger"],
                 "btn_hover": THEME_COLORS["danger_hover"],
             },
@@ -89,11 +89,20 @@ class ModernDialog(ctk.CTkToplevel):
             border_color=THEME_COLORS["border"],
             border_width=BORDER_WIDTH_DIALOG,
         )
-        main_container.pack(fill="both", expand=True, padx=8, pady=8)
+        main_container.pack(fill="both", expand=True, padx=6, pady=6)
+
+        # Top Accent Line (Stitch Modal Shimmer Style)
+        accent_line = ctk.CTkFrame(
+            main_container,
+            height=3,
+            fg_color=cfg["accent"],
+            corner_radius=1,
+        )
+        accent_line.pack(fill="x", side="top")
 
         # Cabeçalho: Ícone em Destaque + Título
         header_row = ctk.CTkFrame(main_container, fg_color="transparent")
-        header_row.pack(fill="x", padx=16, pady=(16, 8))
+        header_row.pack(fill="x", padx=16, pady=(14, 8))
 
         icon_badge = ctk.CTkLabel(
             header_row,
